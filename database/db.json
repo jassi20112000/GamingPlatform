@@ -1,0 +1,74 @@
+{
+  "users": [
+    {
+      "id": "admin-demo",
+      "name": "Admin",
+      "email": "admin@gaming.demo",
+      "passwordHash": "$2b$10$oRyMTnzX.Jc5nugnJsOsk.kFZuQXMWH/g9MwVBixNywy4a1fw.lqy",
+      "role": "admin",
+      "blocked": false,
+      "createdAt": "2026-07-03T00:00:00.000Z"
+    }
+  ],
+  "wallets": [
+    {
+      "userId": "admin-demo",
+      "coins": 1005
+    }
+  ],
+  "games": [
+    {
+      "id": "ludo",
+      "name": "Ludo Casual",
+      "description": "Roll dice and move demo tokens.",
+      "active": true
+    },
+    {
+      "id": "bingo",
+      "name": "Bingo Casual",
+      "description": "Mark numbers and complete a line.",
+      "active": true
+    },
+    {
+      "id": "reaction",
+      "name": "Color Reaction",
+      "description": "Tap the matching color before time runs out.",
+      "active": true
+    },
+    {
+      "id": "aviator",
+      "name": "Aviator Demo",
+      "description": "Animation-only multiplier demo.",
+      "active": true
+    }
+  ],
+  "scores": [
+    {
+      "id": "238d2c18-da5b-4afb-af4f-3ab0e5344388",
+      "userId": "admin-demo",
+      "gameId": "reaction",
+      "score": 10,
+      "reward": 5,
+      "createdAt": "2026-07-02T19:59:29.511Z"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "txn-admin-seed",
+      "userId": "admin-demo",
+      "type": "signup_bonus",
+      "amount": 1000,
+      "note": "Initial admin demo coins",
+      "createdAt": "2026-07-03T00:00:00.000Z"
+    },
+    {
+      "id": "0ff97cbe-6eee-47cc-9bff-9c4552e99ce3",
+      "userId": "admin-demo",
+      "type": "game_score",
+      "amount": 5,
+      "note": "Color Reaction reward",
+      "createdAt": "2026-07-02T19:59:29.511Z"
+    }
+  ],
+  "dailyRewards": []
+}
