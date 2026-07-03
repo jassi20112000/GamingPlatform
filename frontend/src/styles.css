@@ -120,16 +120,28 @@ nav button:hover,
   line-height: 1.15;
 }
 
-.coin-pill {
+.top-actions {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.coin-pill,
+.account-btn {
   align-items: center;
   background: #ffffff;
   border: 1px solid #d9e3e6;
   border-radius: 999px;
+  color: #172026;
   display: flex;
   gap: 8px;
   min-width: 94px;
   padding: 10px 16px;
   justify-content: center;
+}
+
+.account-btn {
+  font-weight: 800;
 }
 
 .toast {
@@ -501,6 +513,21 @@ nav button:hover,
 
   .topbar h1 {
     font-size: 26px;
+  }
+
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .top-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .account-btn,
+  .coin-pill {
+    min-width: 86px;
+    padding: 9px 12px;
   }
 
   .home-grid,

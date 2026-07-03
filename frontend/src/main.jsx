@@ -89,9 +89,22 @@ function App() {
             <p>{session.user ? `Welcome, ${session.user.name}` : "Play casually with demo coins"}</p>
             <h1>{titleFor(page)}</h1>
           </div>
-          <div className="coin-pill">
-            <CircleDollarSign size={18} />
-            <span>{session.wallet?.coins ?? 0}</span>
+          <div className="top-actions">
+            {session.user ? (
+              <button className="account-btn" onClick={logout}>
+                <LogOut size={18} />
+                <span>Logout</span>
+              </button>
+            ) : (
+              <button className="account-btn" onClick={() => setPage("home")}>
+                <User size={18} />
+                <span>Login</span>
+              </button>
+            )}
+            <div className="coin-pill">
+              <CircleDollarSign size={18} />
+              <span>{session.wallet?.coins ?? 0}</span>
+            </div>
           </div>
         </header>
 
