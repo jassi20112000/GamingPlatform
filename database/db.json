@@ -8,12 +8,25 @@
       "role": "admin",
       "blocked": false,
       "createdAt": "2026-07-03T00:00:00.000Z"
+    },
+    {
+      "id": "user-demo",
+      "name": "Demo User",
+      "email": "demo@gaming.demo",
+      "passwordHash": "$2b$10$xbvXCfzR8W4EYzTqGp9iSe5dZLxR5hFF0uIjUAKdQuzI4aq3/xH42",
+      "role": "user",
+      "blocked": false,
+      "createdAt": "2026-07-03T00:00:00.000Z"
     }
   ],
   "wallets": [
     {
       "userId": "admin-demo",
-      "coins": 1005
+      "coins": 1000
+    },
+    {
+      "userId": "user-demo",
+      "coins": 500
     }
   ],
   "games": [
@@ -42,16 +55,7 @@
       "active": true
     }
   ],
-  "scores": [
-    {
-      "id": "238d2c18-da5b-4afb-af4f-3ab0e5344388",
-      "userId": "admin-demo",
-      "gameId": "reaction",
-      "score": 10,
-      "reward": 5,
-      "createdAt": "2026-07-02T19:59:29.511Z"
-    }
-  ],
+  "scores": [],
   "transactions": [
     {
       "id": "txn-admin-seed",
@@ -62,12 +66,12 @@
       "createdAt": "2026-07-03T00:00:00.000Z"
     },
     {
-      "id": "0ff97cbe-6eee-47cc-9bff-9c4552e99ce3",
-      "userId": "admin-demo",
-      "type": "game_score",
-      "amount": 5,
-      "note": "Color Reaction reward",
-      "createdAt": "2026-07-02T19:59:29.511Z"
+      "id": "txn-user-seed",
+      "userId": "user-demo",
+      "type": "signup_bonus",
+      "amount": 500,
+      "note": "Demo user signup coins",
+      "createdAt": "2026-07-03T00:00:00.000Z"
     }
   ],
   "dailyRewards": []
