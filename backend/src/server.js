@@ -11,10 +11,21 @@ import { publicUser, readDb, writeDb } from "./db.js";
 
 const app = express();
 const port = Number(process.env.PORT || 4000);
-const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+const configuredOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 app.use(helmet());
-app.use(cors({ origin: frontendOrigin, credentials: true }));
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || configuredOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: "64kb" }));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 200 }));
 
