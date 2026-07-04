@@ -130,7 +130,7 @@ function Brand() {
       <img src="/brand/doremonking-logo.png" alt="DoremonKing logo" />
       <div>
         <strong>DoremonKing</strong>
-        <span>Fair demo gaming</span>
+        <span>Secure skill gaming</span>
       </div>
     </div>
   );
@@ -238,7 +238,7 @@ function Dashboard({ session, setPage, orders, settings }) {
   return (
     <section className="mobile-stack">
       <div className="balance-hero">
-        <span>Demo Balance</span>
+        <span>Wallet Balance</span>
         <strong>{coins.toFixed(2)}</strong>
         <button onClick={() => setPage("orders")}>Bill Details</button>
       </div>
@@ -256,14 +256,14 @@ function Dashboard({ session, setPage, orders, settings }) {
         <div>
           <span>xCoin Price</span>
           <strong>108.61</strong>
-          <small>1 xCoin = 1 demo rupee</small>
+          <small>1 xCoin = 1 rupee value unit</small>
         </div>
         <svg viewBox="0 0 280 100" aria-hidden="true">
           <path d="M10 78 C40 42, 65 70, 92 40 S145 34, 170 58 220 75, 270 38" />
         </svg>
       </section>
-      <button className="promo" onClick={() => setPage("orders")}>8% simulated return per completed demo order</button>
-      <button className="promo outline" onClick={() => setPage("games")}>{settings.manualRealMoneyMode ? "Fair 1v1 manual mode active" : "Play fair demo games while manual mode is disabled"}</button>
+      <button className="promo" onClick={() => setPage("orders")}>Up to 8% reward tracking per completed order</button>
+      <button className="promo outline" onClick={() => setPage("games")}>{settings.manualRealMoneyMode ? "Fair 1v1 manual mode active" : "Practice fair games while manual mode is disabled"}</button>
     </section>
   );
 }
@@ -289,7 +289,7 @@ function OrdersPage({ orders, refresh, setMessage }) {
         method: "POST",
         body: JSON.stringify({ amount: card.amount, rate: card.rate, method: card.method, tier: card.tier })
       });
-      setMessage(`Demo order completed: +${result.order.income.toFixed(2)} demo rupees.`);
+      setMessage(`Order completed: +${result.order.income.toFixed(2)} wallet units.`);
       await refresh();
     } catch (error) {
       setMessage(error.message);
@@ -307,7 +307,7 @@ function OrdersPage({ orders, refresh, setMessage }) {
           <button key={item} className={tier === item ? "active" : ""} onClick={() => setTier(item)}>{item}</button>
         ))}
       </div>
-      <p className="notice">Order system is a demo simulator. Real payment/withdrawal requires licensed gateway integration.</p>
+      <p className="notice">Orders are currently in practice mode. Live payment/withdrawal requires licensed gateway approval.</p>
       {mode === "buy" ? (
         <div className="order-list">
           {filtered.map((card) => {
@@ -318,7 +318,7 @@ function OrdersPage({ orders, refresh, setMessage }) {
                   <span className="rupee">Rs</span>
                   <strong>{card.amount.toFixed(2)} INR</strong>
                   <em>{card.method}</em>
-                  <p>{income.toFixed(2)} income ({card.rate}% demo)</p>
+                  <p>{income.toFixed(2)} reward ({card.rate}% practice)</p>
                 </div>
                 <div>
                   <strong>+{(card.amount + income).toFixed(2)}</strong>
@@ -337,14 +337,14 @@ function OrdersPage({ orders, refresh, setMessage }) {
                 <span className="rupee">Rs</span>
                 <strong>{order.amount.toFixed(2)} INR</strong>
                 <em>{order.method}</em>
-                <p>{order.income.toFixed(2)} income ({order.rate}% demo)</p>
+                <p>{order.income.toFixed(2)} reward ({order.rate}% practice)</p>
               </div>
               <div>
                 <strong>{order.status.replaceAll("_", " ")}</strong>
                 <span>{new Date(order.createdAt).toLocaleString()}</span>
               </div>
             </article>
-          )) : <div className="empty-state">Sell orders will appear after demo orders are completed.</div>}
+          )) : <div className="empty-state">Sell orders will appear after orders are completed.</div>}
         </div>
       )}
     </section>
@@ -446,7 +446,7 @@ function FairMatchPanel({ refresh, setMessage, settings }) {
 
 async function saveScore(gameId, score, refresh, setMessage) {
   const result = await api(`/api/games/${gameId}/score`, { method: "POST", body: JSON.stringify({ score }) });
-  setMessage(`Fair demo score saved. Reward +${result.reward} coins.`);
+  setMessage(`Fair score saved. Reward +${result.reward} coins.`);
   await refresh();
 }
 
@@ -467,7 +467,7 @@ function MinesGame({ refresh, setMessage }) {
   }
   return (
     <div className="game-panel">
-      <h3>Fair Mines Demo</h3>
+      <h3>Fair Mines</h3>
       <p>One hidden bomb, equal chance on every new round. No rigging.</p>
       <div className="mines-grid">
         {Array.from({ length: 9 }, (_, index) => (
@@ -508,10 +508,10 @@ function AviatorGame({ refresh, setMessage }) {
   }
   return (
     <div className="game-panel aviator">
-      <h3>Aviator Fair Demo</h3>
+      <h3>Aviator Fair</h3>
       <div className="flight-line"><Plane style={{ left: `${Math.min(84, multiplier * 13)}%` }} /></div>
       <strong>{multiplier}x</strong>
-      {!running && <p className="notice">Round ended. Start a new fair demo round.</p>}
+      {!running && <p className="notice">Round ended. Start a new fair round.</p>}
       <div className="game-actions">
         <button onClick={restart}>New Round</button>
         <button onClick={() => saveScore("aviator", Math.floor(multiplier * 100), refresh, setMessage)}>Save Score</button>
@@ -531,7 +531,7 @@ function LudoGame({ refresh, setMessage }) {
   }
   return (
     <div className="game-panel">
-      <h3>Ludo Race Demo</h3>
+      <h3>Ludo Race</h3>
       <div className="ludo-track">
         {Array.from({ length: track + 1 }, (_, index) => <span key={index} className={index === position ? "token" : ""}>{index === position ? "K" : ""}</span>)}
       </div>
@@ -547,7 +547,7 @@ function LudoGame({ refresh, setMessage }) {
 function CricketDemo() {
   return (
     <div className="game-panel cricket">
-      <h3>Cricket Live-Style Demo</h3>
+      <h3>Cricket Live-Style</h3>
       <div className="scoreboard">
         <strong>DK Kings 128/4</strong>
         <span>16.2 overs</span>
@@ -562,7 +562,7 @@ function TeamPage() {
   return (
     <section className="mobile-stack">
       <div className="team-card">
-        <h3>Total rebate <span>[Demo]</span></h3>
+        <h3>Total rebate <span>[Practice]</span></h3>
         <strong>0</strong>
         <div className="mini-grid">
           <StatTile label="Today deposit count" value="0" icon={Banknote} />
@@ -573,7 +573,7 @@ function TeamPage() {
       </div>
       <div className="invite-card">
         <h3>Invite subline</h3>
-        <p>https://doremonking.demo/invite</p>
+        <p>https://doremonking.app/invite</p>
         <div className="share-row">
           <span>Telegram</span><span>Facebook</span><span>WhatsApp</span><span>QR code</span>
         </div>
@@ -608,7 +608,7 @@ function Profile({ session, logout, setMessage }) {
     try {
       await api("/api/payment-methods", { method: "POST", body: JSON.stringify(methodForm) });
       setMethodForm({ ...methodForm, accountRef: "" });
-      setMessage("Demo payment method saved.");
+      setMessage("Payment method saved for review.");
       await loadProfileTools();
     } catch (error) {
       setMessage(error.message);
@@ -619,7 +619,7 @@ function Profile({ session, logout, setMessage }) {
     event.preventDefault();
     try {
       const result = await api("/api/withdrawals", { method: "POST", body: JSON.stringify({ ...withdrawForm, amount: Number(withdrawForm.amount) }) });
-      setMessage(result.withdrawal.status === "pending_admin_review" ? "Withdrawal request sent for admin review." : "Withdrawal locked until demo order volume reaches 5000.");
+      setMessage(result.withdrawal.status === "pending_admin_review" ? "Withdrawal request sent for admin review." : "Withdrawal locked until order volume reaches 5000.");
       await loadProfileTools();
     } catch (error) {
       setMessage(error.message);
@@ -642,7 +642,7 @@ function Profile({ session, logout, setMessage }) {
       </div>
 
       <div className="profile-card">
-        <h3>Add UPI / Bank Demo Account</h3>
+        <h3>Add UPI / Bank Account</h3>
         <form className="tool-form" onSubmit={saveMethod}>
           <select value={methodForm.type} onChange={(event) => setMethodForm({ ...methodForm, type: event.target.value })}>
             <option>UPI</option>
@@ -650,17 +650,17 @@ function Profile({ session, logout, setMessage }) {
           </select>
           <input placeholder="Provider label" value={methodForm.label} onChange={(event) => setMethodForm({ ...methodForm, label: event.target.value })} />
           <input placeholder="UPI ID or masked account ref" value={methodForm.accountRef} onChange={(event) => setMethodForm({ ...methodForm, accountRef: event.target.value })} />
-          <button className="primary-btn">Save Demo Method</button>
+          <button className="primary-btn">Save Method</button>
         </form>
         <div className="compact-list">
           {methods.map((method) => <p key={method.id}><strong>{method.type}</strong> {method.label} - {method.accountRef}</p>)}
-          {!methods.length && <p className="notice">No demo payment methods saved.</p>}
+          {!methods.length && <p className="notice">No payment methods saved.</p>}
         </div>
       </div>
 
       <div className="profile-card">
         <h3>Withdrawal Request</h3>
-        <p className="notice">Demo-only request. Current order volume: {eligibility.orderVolume.toFixed(2)} / {eligibility.minimumOrderVolume}</p>
+        <p className="notice">Practice-mode request. Current order volume: {eligibility.orderVolume.toFixed(2)} / {eligibility.minimumOrderVolume}</p>
         <form className="tool-form" onSubmit={requestWithdrawal}>
           <input type="number" min="1" value={withdrawForm.amount} onChange={(event) => setWithdrawForm({ ...withdrawForm, amount: event.target.value })} />
           <select value={withdrawForm.method} onChange={(event) => setWithdrawForm({ ...withdrawForm, method: event.target.value })}>
@@ -782,7 +782,7 @@ function AdminPanel() {
         <h3>Recent Orders</h3>
         <div className="compact-list">
           {data.orders?.map((order) => <p key={order.id}>{order.tier} - {order.amount} via {order.method} - income {order.income}</p>)}
-          {!data.orders?.length && <p className="notice">No demo orders yet.</p>}
+          {!data.orders?.length && <p className="notice">No orders yet.</p>}
         </div>
       </div>
       <div className="panel">
