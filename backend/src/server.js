@@ -29,16 +29,28 @@ app.use(cors({
 app.use(express.json({ limit: "64kb" }));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 200 }));
 
+const optionalEmail = z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().trim().email().max(120).optional()
+);
+const optionalContact = z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().trim().min(2).max(120).optional()
+);
+
 const signupSchema = z.object({
   name: z.string().trim().min(2).max(40),
-  email: z.string().trim().email().max(120),
+  email: optionalEmail,
+  phone: optionalContact,
   password: z.string().min(8).max(72)
-});
+}).refine((data) => data.email || data.phone, { message: "Email or mobile number required" });
 
 const signupVerifySchema = z.object({
-  email: z.string().trim().email().max(120),
+  identifier: z.string().trim().min(2).max(120).optional(),
+  email: optionalContact,
+  phone: optionalContact,
   otp: z.string().trim().regex(/^\d{6}$/)
-});
+}).refine((data) => data.identifier || data.email || data.phone, { message: "Identifier required" });
 
 const loginSchema = z.object({
   identifier: z.string().trim().min(2).max(120).optional(),
@@ -108,8 +120,14 @@ function normalizeLoginEmail(email) {
   return loginAliases[normalized] || normalized;
 }
 
+function normalizePhone(phone) {
+  return phone.replace(/[^\d]/g, "");
+}
+
 function normalizeIdentifier(identifier) {
-  return identifier.trim().toLowerCase();
+  const value = identifier.trim();
+  const phone = normalizePhone(value);
+  return phone.length >= 10 ? phone : value.toLowerCase();
 }
 
 function findUserByIdentifier(db, identifier) {
@@ -120,8 +138,12 @@ function findUserByIdentifier(db, identifier) {
   });
   return db.users.find((item) => {
     const userCode = item.userCode?.toLowerCase();
-    return emailCandidates.has(item.email) || item.id.toLowerCase() === normalized || userCode === normalized;
+    return emailCandidates.has(item.email) || item.phone === normalized || item.id.toLowerCase() === normalized || userCode === normalized;
   });
+}
+
+function signupContact(signup) {
+  return signup.email ? normalizeLoginEmail(signup.email) : normalizePhone(signup.phone);
 }
 
 function generateUserCode(db) {
@@ -210,7 +232,8 @@ function createUserFromSignup(db, signup) {
     id: uuid(),
     userCode: generateUserCode(db),
     name: signup.name,
-    email: signup.email.toLowerCase(),
+    email: signup.email ? signup.email.toLowerCase() : "",
+    phone: signup.phone ? normalizePhone(signup.phone) : "",
     passwordHash: signup.passwordHash,
     role: "user",
     blocked: false,
@@ -238,18 +261,22 @@ app.post("/api/auth/signup/otp", async (req, res) => {
   if (!parsed.success) return res.status(400).json({ message: "Check signup details" });
 
   const db = readDb();
-  const email = normalizeLoginEmail(parsed.data.email);
-  if (db.users.some((user) => user.email === email)) {
-    return res.status(409).json({ message: "Email already registered" });
+  const contact = signupContact(parsed.data);
+  if (parsed.data.phone && normalizePhone(parsed.data.phone).length < 10) {
+    return res.status(400).json({ message: "Enter a valid mobile number" });
+  }
+  if (db.users.some((user) => user.email === contact || user.phone === contact)) {
+    return res.status(409).json({ message: "Account already registered" });
   }
 
   const signup = {
     name: parsed.data.name,
-    email,
+    email: parsed.data.email ? normalizeLoginEmail(parsed.data.email) : "",
+    phone: parsed.data.phone ? normalizePhone(parsed.data.phone) : "",
     passwordHash: await bcrypt.hash(parsed.data.password, 10)
   };
-  const { otp } = await createOtp(db, "signup", email, signup);
-  const telegramSent = await sendTelegramMessage(`DoremonKing signup OTP for ${email}: ${otp}`);
+  const { otp } = await createOtp(db, "signup", contact, signup);
+  const telegramSent = await sendTelegramMessage(`DoremonKing signup OTP for ${contact}: ${otp}`);
   writeDb(db);
 
   res.json({
@@ -264,11 +291,15 @@ app.post("/api/auth/signup/verify", async (req, res) => {
   if (!parsed.success) return res.status(400).json({ message: "Enter valid 6 digit OTP" });
 
   const db = readDb();
-  const email = normalizeLoginEmail(parsed.data.email);
-  if (db.users.some((user) => user.email === email)) {
-    return res.status(409).json({ message: "Email already registered" });
+  const contact = parsed.data.identifier
+    ? normalizeIdentifier(parsed.data.identifier)
+    : parsed.data.email
+      ? normalizeLoginEmail(parsed.data.email)
+      : normalizePhone(parsed.data.phone);
+  if (db.users.some((user) => user.email === contact || user.phone === contact)) {
+    return res.status(409).json({ message: "Account already registered" });
   }
-  const verification = await verifyOtp(db, "signup", email, parsed.data.otp);
+  const verification = await verifyOtp(db, "signup", contact, parsed.data.otp);
   if (!verification.ok) {
     writeDb(db);
     return res.status(400).json({ message: verification.message });
@@ -305,8 +336,9 @@ app.post("/api/auth/password/otp", async (req, res) => {
   const user = findUserByIdentifier(db, parsed.data.identifier || parsed.data.email);
   if (!user) return res.status(404).json({ message: "Account not registered" });
 
-  const { otp } = await createOtp(db, "password_reset", user.email);
-  const telegramSent = await sendTelegramMessage(`DoremonKing password reset OTP for ${user.email}: ${otp}`);
+  const resetContact = user.email || user.phone;
+  const { otp } = await createOtp(db, "password_reset", resetContact);
+  const telegramSent = await sendTelegramMessage(`DoremonKing password reset OTP for ${resetContact}: ${otp}`);
   writeDb(db);
   res.json({
     message: telegramSent ? "Password reset OTP sent to admin Telegram bot." : "Password reset OTP created. Configure Telegram bot for live delivery.",
@@ -322,7 +354,7 @@ app.post("/api/auth/password/reset", async (req, res) => {
   const db = readDb();
   const user = findUserByIdentifier(db, parsed.data.identifier || parsed.data.email);
   if (!user) return res.status(404).json({ message: "Account not registered" });
-  const verification = await verifyOtp(db, "password_reset", user.email, parsed.data.otp);
+  const verification = await verifyOtp(db, "password_reset", user.email || user.phone, parsed.data.otp);
   if (!verification.ok) {
     writeDb(db);
     return res.status(400).json({ message: verification.message });

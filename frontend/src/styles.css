@@ -1,6 +1,6 @@
 :root {
   color: #17221f;
-  background: #f7f0f8;
+  background: #edf7ff;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -17,9 +17,103 @@ select {
 }
 
 .app-shell {
+  background:
+    radial-gradient(circle at 20% 12%, rgba(255, 209, 102, 0.34), transparent 28%),
+    radial-gradient(circle at 88% 18%, rgba(0, 180, 216, 0.24), transparent 27%),
+    radial-gradient(circle at 68% 86%, rgba(255, 92, 138, 0.18), transparent 30%),
+    linear-gradient(135deg, #f7fbff 0%, #eef8ff 42%, #fff5fb 100%);
   display: grid;
   grid-template-columns: 252px minmax(0, 1fr);
   min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.sky-background {
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: fixed;
+  z-index: 0;
+}
+
+.sky-background::before,
+.sky-background::after {
+  border: 1px solid rgba(8, 96, 125, 0.07);
+  border-radius: 999px;
+  content: "";
+  height: 420px;
+  position: absolute;
+  width: 420px;
+}
+
+.sky-background::before {
+  left: 18%;
+  top: 16%;
+}
+
+.sky-background::after {
+  bottom: -130px;
+  right: 8%;
+}
+
+.sky-plane {
+  animation: flyAcross 18s linear infinite;
+  background: linear-gradient(90deg, rgba(15, 166, 106, 0), rgba(15, 166, 106, 0.38), rgba(20, 110, 232, 0.2));
+  border-radius: 999px;
+  height: 4px;
+  left: -180px;
+  position: absolute;
+  top: 22%;
+  width: 150px;
+}
+
+.sky-plane::before {
+  background: linear-gradient(135deg, #00a86b, #146ee8 55%, #ffbf3f);
+  clip-path: polygon(0 42%, 66% 42%, 88% 0, 100% 0, 83% 50%, 100% 100%, 88% 100%, 66% 58%, 0 58%);
+  content: "";
+  height: 28px;
+  position: absolute;
+  right: -18px;
+  top: -12px;
+  transform: rotate(8deg);
+  width: 66px;
+}
+
+.plane-two {
+  animation-duration: 24s;
+  animation-delay: -8s;
+  background: linear-gradient(90deg, rgba(255, 92, 138, 0), rgba(255, 92, 138, 0.35), rgba(255, 194, 71, 0.22));
+  top: 47%;
+}
+
+.plane-two::before {
+  background: linear-gradient(135deg, #ff5c8a, #ffbf3f 60%, #00b4d8);
+}
+
+.plane-three {
+  animation-duration: 21s;
+  animation-delay: -13s;
+  top: 70%;
+}
+
+.plane-four {
+  animation-duration: 28s;
+  animation-delay: -17s;
+  background: linear-gradient(90deg, rgba(20, 110, 232, 0), rgba(20, 110, 232, 0.34), rgba(15, 166, 106, 0.18));
+  top: 9%;
+}
+
+@keyframes flyAcross {
+  0% {
+    transform: translateX(-12vw) translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateX(55vw) translateY(-26px) rotate(4deg);
+  }
+  100% {
+    transform: translateX(118vw) translateY(10px) rotate(-3deg);
+  }
 }
 
 .sidebar {
@@ -29,6 +123,8 @@ select {
   flex-direction: column;
   gap: 22px;
   padding: 18px;
+  position: relative;
+  z-index: 2;
 }
 
 .brand {
@@ -66,7 +162,9 @@ nav button.active, nav button:hover, .ghost:hover { background: #0fa66a; color: 
   margin: 0 auto;
   max-width: 1120px;
   padding: 28px;
+  position: relative;
   width: 100%;
+  z-index: 1;
 }
 
 .topbar {
@@ -118,7 +216,8 @@ nav button.active, nav button:hover, .ghost:hover { background: #0fa66a; color: 
 .login-screen p { color: #68736f; margin: 0 0 24px; }
 
 .auth-box, .panel, .balance-hero, .stat-tile, .market-card, .order-card, .game-panel, .team-card, .invite-card, .profile-card, .empty-state {
-  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.82);
   border: 1px solid #eadfe9;
   border-radius: 8px;
   box-shadow: 0 14px 36px rgba(36, 23, 39, 0.08);

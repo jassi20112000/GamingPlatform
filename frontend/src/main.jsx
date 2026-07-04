@@ -87,6 +87,12 @@ function App() {
 
   return (
     <main className="app-shell">
+      <div className="sky-background" aria-hidden="true">
+        <span className="sky-plane plane-one" />
+        <span className="sky-plane plane-two" />
+        <span className="sky-plane plane-three" />
+        <span className="sky-plane plane-four" />
+      </div>
       <aside className="sidebar">
         <Brand />
         <nav>
@@ -149,7 +155,7 @@ function Brand() {
 
 function AuthPage({ setSession, setPage, setMessage, refresh }) {
   const [mode, setMode] = useState("login");
-  const [form, setForm] = useState({ name: "", email: "", password: "", otp: "", newPassword: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", otp: "", newPassword: "" });
   const [agree, setAgree] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [setupOtp, setSetupOtp] = useState("");
@@ -185,12 +191,12 @@ function AuthPage({ setSession, setPage, setMessage, refresh }) {
 
       if (mode === "signup") {
         if (!otpSent) {
-          const result = await api("/api/auth/signup/otp", { method: "POST", body: JSON.stringify({ name: form.name, email: form.email, password: form.password }) });
+          const result = await api("/api/auth/signup/otp", { method: "POST", body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, password: form.password }) });
           setOtpSent(true);
           setSetupOtp(result.setupOtp || "");
           return setMessage(result.message);
         }
-        const data = await api("/api/auth/signup/verify", { method: "POST", body: JSON.stringify({ email: form.email, otp: form.otp }) });
+        const data = await api("/api/auth/signup/verify", { method: "POST", body: JSON.stringify({ identifier: form.email || form.phone, otp: form.otp }) });
         setToken(data.token);
         setSession((current) => ({ ...current, user: data.user }));
         setPage("dashboard");
@@ -222,7 +228,8 @@ function AuthPage({ setSession, setPage, setMessage, refresh }) {
           <button type="button" className={mode === "signup" ? "active" : ""} onClick={() => switchMode("signup")}>Signup</button>
         </div>
         {mode === "signup" && <input placeholder="Username" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />}
-        <input placeholder="Email or User ID" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <input placeholder={mode === "signup" ? "Email address (optional)" : "Email, Mobile or User ID"} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        {mode === "signup" && <input placeholder="Mobile number" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />}
         {mode !== "forgot" && !otpSent && <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />}
         {mode === "forgot" && otpSent && <input placeholder="New password" type="password" value={form.newPassword} onChange={(e) => setForm({ ...form, newPassword: e.target.value })} />}
         {otpSent && <input placeholder="6 digit OTP" inputMode="numeric" value={form.otp} onChange={(e) => setForm({ ...form, otp: e.target.value })} />}
@@ -646,7 +653,7 @@ function Profile({ session, logout, setMessage }) {
           <div className="avatar"><User /></div>
           <div>
             <h3>{session.user?.name}</h3>
-            <p>{session.user?.email}</p>
+            <p>{session.user?.email || session.user?.phone}</p>
             <p>User ID: {session.user?.userCode || session.user?.id}</p>
           </div>
         </div>
