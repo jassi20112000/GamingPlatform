@@ -43,8 +43,11 @@ function App() {
   const [session, setSession] = useState({ user: null, wallet: null, scores: [] });
   const [message, setMessage] = useState("");
   const [orders, setOrders] = useState([]);
+  const [settings, setSettings] = useState({ manualRealMoneyMode: false, complianceStatus: "pending_written_legal_approval" });
 
   async function refresh() {
+    const settingsData = await api("/api/settings");
+    setSettings(settingsData.settings);
     if (!getToken()) return;
     try {
       setSession(await api("/api/me"));
@@ -58,7 +61,7 @@ function App() {
   }
 
   useEffect(() => {
-    refresh();
+    refresh().catch(() => {});
   }, []);
 
   const visibleNav = useMemo(() => {
@@ -98,7 +101,7 @@ function App() {
       <section className="content">
         <header className="topbar">
           <div>
-            <p className="ticker">DoremonKing will never ask you to send money privately. Demo mode only.</p>
+            <p className="ticker">DoremonKing will never ask you to send money privately. {settings.manualRealMoneyMode ? "Manual mode enabled by admin." : "Manual real-money mode disabled."}</p>
             <h1>{session.user ? `Hello, ${session.user.name}` : "Welcome to DoremonKing"}</h1>
           </div>
           <div className="top-actions">
@@ -110,9 +113,9 @@ function App() {
         {message && <div className="toast">{message}</div>}
 
         {!session.user && <AuthPage setSession={setSession} setPage={setPage} setMessage={setMessage} refresh={refresh} />}
-        {session.user && page === "dashboard" && <Dashboard session={session} setPage={setPage} orders={orders} />}
+        {session.user && page === "dashboard" && <Dashboard session={session} setPage={setPage} orders={orders} settings={settings} />}
         {session.user && page === "orders" && <OrdersPage orders={orders} refresh={refresh} setMessage={setMessage} />}
-        {session.user && page === "games" && <GamesPage refresh={refresh} setMessage={setMessage} />}
+        {session.user && page === "games" && <GamesPage refresh={refresh} setMessage={setMessage} settings={settings} />}
         {session.user && page === "team" && <TeamPage />}
         {session.user && page === "profile" && <Profile session={session} logout={logout} setMessage={setMessage} />}
         {session.user && page === "admin" && <AdminPanel />}
@@ -179,7 +182,7 @@ function AuthPage({ setSession, setPage, setMessage, refresh }) {
   );
 }
 
-function Dashboard({ session, setPage, orders }) {
+function Dashboard({ session, setPage, orders, settings }) {
   const coins = session.wallet?.coins ?? 0;
   const todayProfit = orders.reduce((sum, order) => sum + order.income, 0);
   return (
@@ -210,7 +213,7 @@ function Dashboard({ session, setPage, orders }) {
         </svg>
       </section>
       <button className="promo" onClick={() => setPage("orders")}>8% simulated return per completed demo order</button>
-      <button className="promo outline" onClick={() => setPage("games")}>Play fair Mines, Aviator and Ludo demo</button>
+      <button className="promo outline" onClick={() => setPage("games")}>{settings.manualRealMoneyMode ? "Fair 1v1 manual mode active" : "Play fair demo games while manual mode is disabled"}</button>
     </section>
   );
 }
@@ -298,7 +301,7 @@ function OrdersPage({ orders, refresh, setMessage }) {
   );
 }
 
-function GamesPage({ refresh, setMessage }) {
+function GamesPage({ refresh, setMessage, settings }) {
   const [selected, setSelected] = useState("matches");
   return (
     <section className="games-layout">
@@ -307,7 +310,7 @@ function GamesPage({ refresh, setMessage }) {
           <button key={game} className={selected === game ? "active" : ""} onClick={() => setSelected(game)}>{game}</button>
         ))}
       </div>
-      {selected === "matches" && <FairMatchPanel refresh={refresh} setMessage={setMessage} />}
+      {selected === "matches" && <FairMatchPanel refresh={refresh} setMessage={setMessage} settings={settings} />}
       {selected === "mines" && <MinesGame refresh={refresh} setMessage={setMessage} />}
       {selected === "aviator" && <AviatorGame refresh={refresh} setMessage={setMessage} />}
       {selected === "ludo" && <LudoGame refresh={refresh} setMessage={setMessage} />}
@@ -316,7 +319,7 @@ function GamesPage({ refresh, setMessage }) {
   );
 }
 
-function FairMatchPanel({ refresh, setMessage }) {
+function FairMatchPanel({ refresh, setMessage, settings }) {
   const [matches, setMatches] = useState([]);
   const [form, setForm] = useState({ gameId: "ludo", entryAmount: 10 });
 
@@ -366,7 +369,7 @@ function FairMatchPanel({ refresh, setMessage }) {
   return (
     <div className="game-panel">
       <h3>Fair 1v1 Skill Matches</h3>
-      <p className="notice">Transparent escrow ledger: 8% platform fee, TDS/GST fields tracked, admin-only settlement. Real payments stay disabled until written legal/gateway approval.</p>
+      <p className="notice">Transparent escrow ledger: 8% platform fee, TDS/GST fields tracked, admin-only settlement. {settings.manualRealMoneyMode ? "Manual mode is enabled by admin." : "Manual real-money mode is disabled until written legal/gateway approval."}</p>
       <form className="tool-form inline-form" onSubmit={createMatch}>
         <select value={form.gameId} onChange={(event) => setForm({ ...form, gameId: event.target.value })}>
           <option value="ludo">Ludo</option>
@@ -628,9 +631,12 @@ function Profile({ session, logout, setMessage }) {
 function AdminPanel() {
   const [data, setData] = useState(null);
   const [settleForms, setSettleForms] = useState({});
+  const [settingsForm, setSettingsForm] = useState({ manualRealMoneyMode: false, complianceStatus: "pending_written_legal_approval" });
   const [adminMessage, setAdminMessage] = useState("");
   async function load() {
-    setData(await api("/api/admin/overview"));
+    const overview = await api("/api/admin/overview");
+    setData(overview);
+    setSettingsForm(overview.settings);
   }
   useEffect(() => {
     load();
@@ -650,6 +656,21 @@ function AdminPanel() {
     }
   }
 
+  async function saveSettings(event) {
+    event.preventDefault();
+    try {
+      const result = await api("/api/admin/settings", {
+        method: "PATCH",
+        body: JSON.stringify(settingsForm)
+      });
+      setSettingsForm(result.settings);
+      setAdminMessage(result.settings.manualRealMoneyMode ? "Manual real-money mode enabled by admin." : "Manual real-money mode disabled.");
+      await load();
+    } catch (error) {
+      setAdminMessage(error.message);
+    }
+  }
+
   if (!data) return <p className="muted">Loading admin panel...</p>;
   return (
     <section className="admin-layout">
@@ -663,6 +684,29 @@ function AdminPanel() {
       <div className="panel">
         <h3>Compliance Notes</h3>
         <p className="notice">Real withdrawals, UPI collection, betting, and paid contests are disabled until licensed gateway, KYC, tax, and legal compliance are integrated.</p>
+      </div>
+      <div className="panel">
+        <h3>Manual Real-Money Mode</h3>
+        <p className="notice">Keep this disabled until written lawyer/CA/gateway approval is available. This switch is admin-only.</p>
+        <form className="tool-form" onSubmit={saveSettings}>
+          <label className="switch-line">
+            <input
+              type="checkbox"
+              checked={settingsForm.manualRealMoneyMode}
+              onChange={(event) => setSettingsForm({
+                ...settingsForm,
+                manualRealMoneyMode: event.target.checked,
+                complianceStatus: event.target.checked ? "approved_manual_enable" : "pending_written_legal_approval"
+              })}
+            />
+            <span>{settingsForm.manualRealMoneyMode ? "Enabled" : "Disabled"}</span>
+          </label>
+          <select value={settingsForm.complianceStatus} onChange={(event) => setSettingsForm({ ...settingsForm, complianceStatus: event.target.value })}>
+            <option value="pending_written_legal_approval">Pending written legal approval</option>
+            <option value="approved_manual_enable">Approved for manual enable</option>
+          </select>
+          <button className="primary-btn">Save Platform Mode</button>
+        </form>
       </div>
       <div className="panel">
         <h3>Fair Match Settlement</h3>

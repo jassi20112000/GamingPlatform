@@ -143,6 +143,19 @@ nav button.active, nav button:hover, .ghost:hover { background: #0fa66a; color: 
   gap: 8px;
   font-size: 14px;
 }
+.switch-line {
+  align-items: center;
+  background: #f6eef7;
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 12px;
+}
+.switch-line input {
+  height: 20px;
+  width: 20px;
+}
 
 .primary-btn, .game-actions button, .order-card button, .promo, .balance-hero button {
   background: #0bb36d;

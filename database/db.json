@@ -90,5 +90,10 @@
   "orders": [],
   "withdrawals": [],
   "paymentMethods": [],
-  "matches": []
+  "matches": [],
+  "settings": {
+    "manualRealMoneyMode": false,
+    "complianceStatus": "pending_written_legal_approval",
+    "updatedAt": "2026-07-04T00:00:00.000Z"
+  }
 }

@@ -68,6 +68,11 @@ const settleMatchSchema = z.object({
   note: z.string().trim().max(200).optional()
 });
 
+const settingsSchema = z.object({
+  manualRealMoneyMode: z.boolean(),
+  complianceStatus: z.enum(["pending_written_legal_approval", "approved_manual_enable"])
+});
+
 const platformFeeRate = 0.08;
 const tdsRate = 0.30;
 const gstRate = 0.28;
@@ -78,6 +83,15 @@ function findWallet(db, userId) {
 
 function requireWalletBalance(wallet, amount) {
   return wallet && wallet.coins >= amount;
+}
+
+function platformSettings(db) {
+  db.settings ||= {
+    manualRealMoneyMode: false,
+    complianceStatus: "pending_written_legal_approval",
+    updatedAt: new Date().toISOString()
+  };
+  return db.settings;
 }
 
 app.get("/api/health", (_req, res) => {
@@ -141,6 +155,11 @@ app.get("/api/me", requireAuth, (req, res) => {
 
 app.get("/api/games", (_req, res) => {
   res.json(readDb().games.filter((game) => game.active));
+});
+
+app.get("/api/settings", (_req, res) => {
+  const settings = platformSettings(readDb());
+  res.json({ settings });
 });
 
 app.post("/api/games/:gameId/score", requireAuth, (req, res) => {
@@ -378,6 +397,7 @@ app.post("/api/wallet/daily-reward", requireAuth, (req, res) => {
 
 app.get("/api/admin/overview", requireAuth, requireAdmin, (_req, res) => {
   const db = readDb();
+  const settings = platformSettings(db);
   const activeUsers = db.users.filter((user) => !user.blocked).length;
   res.json({
     totals: {
@@ -396,8 +416,25 @@ app.get("/api/admin/overview", requireAuth, requireAdmin, (_req, res) => {
     orders: (db.orders || []).slice(-50).reverse(),
     withdrawals: (db.withdrawals || []).slice(-50).reverse(),
     paymentMethods: (db.paymentMethods || []).slice(-50).reverse(),
-    matches: (db.matches || []).slice(-50).reverse()
+    matches: (db.matches || []).slice(-50).reverse(),
+    settings
   });
+});
+
+app.patch("/api/admin/settings", requireAuth, requireAdmin, (req, res) => {
+  const parsed = settingsSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid settings" });
+  if (parsed.data.manualRealMoneyMode && parsed.data.complianceStatus !== "approved_manual_enable") {
+    return res.status(400).json({ message: "Written legal approval is required before enabling manual real-money mode" });
+  }
+  const db = readDb();
+  db.settings = {
+    ...platformSettings(db),
+    ...parsed.data,
+    updatedAt: new Date().toISOString()
+  };
+  writeDb(db);
+  res.json({ settings: db.settings });
 });
 
 app.post("/api/admin/matches/:matchId/settle", requireAuth, requireAdmin, (req, res) => {
