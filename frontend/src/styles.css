@@ -270,12 +270,48 @@ nav button.active, nav button:hover, .ghost:hover { background: #0fa66a; color: 
 }
 .login-screen p { color: #68736f; margin: 0 0 24px; }
 
-.auth-box, .panel, .balance-hero, .stat-tile, .market-card, .order-card, .game-panel, .team-card, .invite-card, .profile-card, .empty-state {
+.auth-box, .panel, .balance-hero, .stat-tile, .market-card, .order-card, .game-panel, .team-card, .invite-card, .profile-card, .empty-state, .install-card {
   backdrop-filter: blur(16px);
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid #eadfe9;
   border-radius: 8px;
   box-shadow: 0 14px 36px rgba(36, 23, 39, 0.08);
+}
+
+.install-card {
+  align-items: center;
+  border-color: rgba(15, 166, 106, 0.28);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr auto auto;
+  margin-bottom: 14px;
+  padding: 14px;
+}
+
+.install-card strong,
+.install-card span {
+  display: block;
+}
+
+.install-card span {
+  color: #68736f;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.install-card p {
+  color: #53625e;
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.ghost-btn {
+  background: #edf4f2;
+  border-radius: 8px;
+  color: #40504c;
+  font-weight: 800;
+  min-height: 46px;
+  padding: 11px 16px;
 }
 
 .auth-box {

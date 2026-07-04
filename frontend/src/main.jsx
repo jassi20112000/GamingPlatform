@@ -44,6 +44,8 @@ function App() {
   const [message, setMessage] = useState("");
   const [orders, setOrders] = useState([]);
   const [settings, setSettings] = useState({ manualRealMoneyMode: false, complianceStatus: "pending_written_legal_approval" });
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstallCard, setShowInstallCard] = useState(false);
 
   async function refresh() {
     try {
@@ -73,6 +75,27 @@ function App() {
   useEffect(() => {
     refresh().catch(() => {});
   }, []);
+
+  useEffect(() => {
+    function captureInstallPrompt(event) {
+      event.preventDefault();
+      setInstallPrompt(event);
+      setShowInstallCard(true);
+    }
+    window.addEventListener("beforeinstallprompt", captureInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", captureInstallPrompt);
+  }, []);
+
+  async function installApp() {
+    if (installPrompt) {
+      installPrompt.prompt();
+      await installPrompt.userChoice.catch(() => {});
+      setInstallPrompt(null);
+      setShowInstallCard(false);
+      return;
+    }
+    setShowInstallCard(true);
+  }
 
   const visibleNav = useMemo(() => {
     if (!session.user) return [{ id: "dashboard", label: "Login", icon: Home }];
@@ -133,8 +156,9 @@ function App() {
         </header>
 
         {message && <div className="toast">{message}</div>}
+        {showInstallCard && <InstallCard installApp={installApp} canPrompt={Boolean(installPrompt)} onClose={() => setShowInstallCard(false)} />}
 
-        {!session.user && <AuthPage setSession={setSession} setPage={setPage} setMessage={setMessage} refresh={refresh} />}
+        {!session.user && <AuthPage setSession={setSession} setPage={setPage} setMessage={setMessage} refresh={refresh} showInstall={() => setShowInstallCard(true)} />}
         {session.user && page === "dashboard" && <Dashboard session={session} setPage={setPage} orders={orders} settings={settings} />}
         {session.user && page === "orders" && <OrdersPage orders={orders} refresh={refresh} setMessage={setMessage} />}
         {session.user && page === "games" && <GamesPage refresh={refresh} setMessage={setMessage} settings={settings} />}
@@ -143,6 +167,22 @@ function App() {
         {session.user && page === "admin" && <AdminPanel />}
       </section>
     </main>
+  );
+}
+
+function InstallCard({ installApp, canPrompt, onClose }) {
+  return (
+    <section className="install-card">
+      <div>
+        <strong>Install DoremonKing App</strong>
+        <span>{canPrompt ? "Tap install to add the app on your phone." : "Use your browser menu to install this app on your phone."}</span>
+      </div>
+      <button className="primary-btn" onClick={installApp}>{canPrompt ? "Install App" : "Show Steps"}</button>
+      <button className="ghost-btn" onClick={onClose}>Later</button>
+      {!canPrompt && (
+        <p>Android Chrome: menu (...) then Install app. iPhone Safari: Share then Add to Home Screen.</p>
+      )}
+    </section>
   );
 }
 
@@ -159,7 +199,7 @@ function Brand() {
   );
 }
 
-function AuthPage({ setSession, setPage, setMessage, refresh }) {
+function AuthPage({ setSession, setPage, setMessage, refresh, showInstall }) {
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", otp: "", newPassword: "" });
   const [agree, setAgree] = useState(false);
@@ -207,6 +247,7 @@ function AuthPage({ setSession, setPage, setMessage, refresh }) {
         setSession((current) => ({ ...current, user: data.user }));
         setPage("dashboard");
         setMessage("Account created successfully.");
+        showInstall();
         return refresh().catch(() => {});
       }
 
