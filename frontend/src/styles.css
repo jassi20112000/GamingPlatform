@@ -1,40 +1,27 @@
 :root {
+  color: #17221f;
+  background: #f7f0f8;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #172026;
-  background: #edf3f6;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
-button,
-input {
-  font: inherit;
-}
-
-button {
-  border: 0;
-  cursor: pointer;
-}
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input { font: inherit; }
+button { border: 0; cursor: pointer; }
 
 .app-shell {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 252px minmax(0, 1fr);
   min-height: 100vh;
 }
 
 .sidebar {
-  background: #0d1b1e;
-  color: #f7fbfc;
+  background: #071b19;
+  color: #effff9;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 22px;
+  gap: 22px;
+  padding: 18px;
 }
 
 .brand {
@@ -43,516 +30,435 @@ button {
   gap: 12px;
 }
 
-.brand-mark {
-  align-items: center;
-  background: #f4b942;
-  border-radius: 8px;
-  color: #132024;
-  display: grid;
-  height: 42px;
-  place-items: center;
-  width: 42px;
+.brand img {
+  border-radius: 12px;
+  height: 46px;
+  object-fit: cover;
+  width: 46px;
 }
 
-.brand strong,
-.brand span {
-  display: block;
-}
+.brand strong, .brand span { display: block; }
+.brand span { color: #9db7b2; font-size: 12px; margin-top: 2px; }
 
-.brand span {
-  color: #a7b6ba;
-  font-size: 13px;
-  margin-top: 2px;
-}
-
-nav {
-  display: grid;
-  gap: 8px;
-}
-
-nav button,
-.ghost {
+nav { display: grid; gap: 8px; }
+nav button, .ghost {
   align-items: center;
   background: transparent;
   border-radius: 8px;
-  color: #c7d7da;
+  color: #b9ccc8;
   display: flex;
   gap: 10px;
   min-height: 42px;
   padding: 10px 12px;
   text-align: left;
 }
-
-nav button.active,
-nav button:hover,
-.ghost:hover {
-  background: #173237;
-  color: #ffffff;
-}
-
-.logout {
-  margin-top: auto;
-}
+nav button.active, nav button:hover, .ghost:hover { background: #0fa66a; color: white; }
+.logout { margin-top: auto; }
 
 .content {
+  margin: 0 auto;
+  max-width: 1120px;
   padding: 28px;
+  width: 100%;
 }
 
 .topbar {
   align-items: center;
   display: flex;
+  gap: 14px;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
-
-.topbar p,
-.topbar h1 {
-  margin: 0;
+.ticker {
+  color: #ea4b78;
+  font-size: 14px;
+  margin: 0 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 680px;
 }
-
-.topbar p {
-  color: #687a80;
-}
-
-.topbar h1 {
-  font-size: 32px;
-  line-height: 1.15;
-}
-
-.top-actions {
+.topbar h1 { font-size: 30px; margin: 0; }
+.top-actions { display: flex; gap: 8px; }
+.round-action {
   align-items: center;
-  display: flex;
-  gap: 10px;
-}
-
-.coin-pill,
-.account-btn {
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #d9e3e6;
+  background: white;
+  border: 1px solid #eadfe9;
   border-radius: 999px;
-  color: #172026;
-  display: flex;
-  gap: 8px;
-  min-width: 94px;
-  padding: 10px 16px;
-  justify-content: center;
-}
-
-.account-btn {
-  font-weight: 800;
+  display: grid;
+  height: 42px;
+  place-items: center;
+  width: 42px;
 }
 
 .toast {
-  background: #1f6f78;
+  background: #0fa66a;
   border-radius: 8px;
   color: white;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   padding: 12px 14px;
 }
 
-.home-grid,
-.grid.two {
-  display: grid;
-  gap: 18px;
-  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.6fr);
+.login-screen {
+  margin: 26px auto 0;
+  max-width: 460px;
 }
+.login-screen .brand { margin-bottom: 36px; }
+.login-screen h2 {
+  font-size: 36px;
+  margin: 0 0 10px;
+}
+.login-screen p { color: #68736f; margin: 0 0 24px; }
 
-.hero-panel {
-  align-items: end;
-  background:
-    linear-gradient(120deg, rgba(13, 27, 30, 0.95), rgba(31, 111, 120, 0.84)),
-    url("https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1400&q=80");
-  background-position: center;
-  background-size: cover;
+.auth-box, .panel, .balance-hero, .stat-tile, .market-card, .order-card, .game-panel, .team-card, .invite-card, .profile-card, .empty-state {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #eadfe9;
   border-radius: 8px;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  min-height: 410px;
-  padding: 34px;
-}
-
-.hero-panel h2 {
-  font-size: 38px;
-  line-height: 1.05;
-  margin: 0 0 14px;
-  max-width: 650px;
-}
-
-.hero-panel p {
-  color: #dce8ea;
-  font-size: 17px;
-  margin: 0;
-  max-width: 570px;
-}
-
-.hero-panel button,
-.auth-box button,
-.wallet-balance button,
-.game-panel button {
-  background: #f4b942;
-  border-radius: 8px;
-  color: #1a2427;
-  font-weight: 800;
-  min-height: 44px;
-  padding: 11px 16px;
-}
-
-.feature-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 28px;
-}
-
-.feature-row span {
-  background: rgba(255, 255, 255, 0.13);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  padding: 8px 12px;
-}
-
-.auth-box,
-.panel,
-.metric,
-.wallet-balance,
-.game-panel {
-  background: #ffffff;
-  border: 1px solid #d9e3e6;
-  border-radius: 8px;
-  box-shadow: 0 18px 45px rgba(26, 45, 51, 0.08);
+  box-shadow: 0 14px 36px rgba(36, 23, 39, 0.08);
 }
 
 .auth-box {
-  align-self: start;
   display: grid;
   gap: 12px;
-  padding: 18px;
+  padding: 16px;
 }
-
 .auth-box input {
-  border: 1px solid #cfdbdf;
+  border: 1px solid #ddd2dc;
   border-radius: 8px;
-  min-height: 44px;
-  padding: 10px 12px;
+  min-height: 50px;
+  padding: 12px 14px;
+}
+.auth-box small, .notice, .muted { color: #6f7c78; }
+.checkline {
+  align-items: center;
+  color: #68736f;
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
 }
 
-.auth-box small,
-.muted {
-  color: #65777d;
+.primary-btn, .game-actions button, .order-card button, .promo, .balance-hero button {
+  background: #0bb36d;
+  border-radius: 8px;
+  color: white;
+  font-weight: 800;
+  min-height: 46px;
+  padding: 11px 16px;
 }
 
-.tabs,
-.game-tabs {
-  background: #e7eef1;
+.tabs {
+  background: #f0e9f1;
   border-radius: 8px;
   display: grid;
-  gap: 4px;
+  gap: 5px;
   grid-template-columns: repeat(2, 1fr);
-  padding: 4px;
+  padding: 5px;
 }
-
-.tabs button,
-.game-tabs button {
+.tabs button {
   background: transparent;
   border-radius: 7px;
-  min-height: 38px;
+  min-height: 40px;
 }
-
-.tabs .active,
-.game-tabs .active {
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgba(32, 54, 60, 0.11);
+.tabs .active {
+  background: #0bb36d;
+  color: white;
 }
+.pill-tabs { grid-template-columns: repeat(3, 1fr); }
 
-.metric {
+.mobile-stack {
   display: grid;
-  gap: 10px;
-  min-height: 150px;
-  padding: 20px;
+  gap: 14px;
 }
 
-.metric svg {
-  color: #1f6f78;
-}
-
-.metric span {
-  color: #64777d;
-}
-
-.metric strong {
-  font-size: 34px;
-}
-
-.panel,
-.wallet-balance,
-.game-panel {
-  padding: 20px;
-}
-
-.span {
-  grid-column: 1 / -1;
-}
-
-.list {
-  display: grid;
-  gap: 10px;
-}
-
-.list-row {
+.balance-hero {
   align-items: center;
-  background: #f5f8f9;
-  border-radius: 8px;
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
-  min-height: 48px;
-  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: 20px;
+}
+.balance-hero span { color: #8b9693; grid-column: 1 / -1; }
+.balance-hero strong {
+  font-size: 52px;
+  letter-spacing: 0;
 }
 
-.list-row span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.list-row em {
-  color: #1f6f78;
-  font-style: normal;
-}
-
-.wallet-balance {
-  align-items: start;
+.mini-grid {
   display: grid;
   gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-
-.wallet-balance svg {
-  color: #1f6f78;
-}
-
-.wallet-balance strong {
-  font-size: 46px;
-}
-
-.games-layout,
-.admin-layout {
+.stat-tile {
   display: grid;
-  gap: 18px;
+  gap: 7px;
+  min-height: 116px;
+  padding: 16px;
 }
+.stat-tile svg { color: #0fa66a; }
+.stat-tile span { color: #7c8783; }
+.stat-tile strong { font-size: 22px; }
 
-.game-tabs {
+.quick-actions {
+  display: grid;
+  gap: 14px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
+.quick-actions button {
+  align-items: center;
+  background: transparent;
+  color: #40504c;
+  display: grid;
+  gap: 7px;
+  justify-items: center;
+}
+.quick-actions svg {
+  background: #0bb36d;
+  border-radius: 14px;
+  color: white;
+  height: 58px;
+  padding: 14px;
+  width: 58px;
+}
 
+.market-card {
+  background: #071b19;
+  color: white;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 190px 1fr;
+  min-height: 160px;
+  overflow: hidden;
+  padding: 20px;
+}
+.market-card span, .market-card small { color: #b5c9c4; display: block; }
+.market-card strong { color: #ffd23f; display: block; font-size: 42px; margin: 14px 0 4px; }
+.market-card svg { height: 100%; width: 100%; }
+.market-card path {
+  fill: none;
+  stroke: #0fed83;
+  stroke-linecap: round;
+  stroke-width: 8;
+}
+.promo {
+  align-items: center;
+  display: flex;
+  font-size: 18px;
+  justify-content: center;
+}
+.promo.outline {
+  background: white;
+  border: 1px solid #0bb36d;
+  color: #0a7a4d;
+}
+
+.order-list, .games-layout, .admin-layout {
+  display: grid;
+  gap: 14px;
+}
+.order-card {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr auto;
+  padding: 16px;
+}
+.order-card strong { display: block; font-size: 22px; }
+.order-card em {
+  background: #146ee8;
+  border-radius: 999px;
+  color: white;
+  display: inline-block;
+  font-style: normal;
+  margin-left: 8px;
+  padding: 3px 10px;
+}
+.order-card p { color: #62706c; margin: 8px 0 0; }
+.order-card > div:last-child { display: grid; gap: 6px; justify-items: end; }
+.rupee {
+  background: #0bb36d;
+  border-radius: 50%;
+  color: white;
+  display: inline-grid;
+  height: 34px;
+  margin-right: 10px;
+  place-items: center;
+  width: 34px;
+}
+.empty-state { color: #7c8783; padding: 30px; text-align: center; }
+
+.game-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .game-panel {
   display: grid;
   gap: 16px;
-  min-height: 420px;
+  min-height: 360px;
+  padding: 18px;
 }
-
-.game-panel h3,
-.panel h3 {
-  margin: 0;
-}
-
-.color-grid,
-.bingo-grid {
+.game-panel h3, .team-card h3, .invite-card h3, .panel h3 { margin: 0; }
+.mines-grid {
   display: grid;
   gap: 10px;
+  grid-template-columns: repeat(3, minmax(72px, 1fr));
+  max-width: 360px;
 }
-
-.color-grid {
-  grid-template-columns: repeat(4, minmax(72px, 1fr));
-}
-
-.color {
+.mines-grid button {
   aspect-ratio: 1;
+  background: #f1e9f2;
   border-radius: 8px;
-}
-
-.red {
-  background: #e64f4a;
-}
-
-.blue {
-  background: #2c7be5;
-}
-
-.green {
-  background: #2f9e62;
-}
-
-.yellow {
-  background: #f4b942;
-}
-
-.bingo-grid {
-  grid-template-columns: repeat(4, minmax(56px, 1fr));
-  max-width: 420px;
-}
-
-.bingo-grid button {
-  aspect-ratio: 1;
-  background: #edf3f6;
-  border-radius: 8px;
-  font-weight: 800;
-}
-
-.bingo-grid .marked {
-  background: #1f6f78;
-  color: white;
-}
-
-.dice {
-  align-items: center;
-  background: #f4b942;
-  border-radius: 8px;
-  display: grid;
-  font-size: 64px;
+  color: #19231f;
+  font-size: 24px;
   font-weight: 900;
-  height: 140px;
-  place-items: center;
-  width: 140px;
 }
-
+.mines-grid .safe { background: #0bb36d; color: white; }
+.mines-grid .boom { background: #ef4f56; color: white; }
+.game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .flight-line {
-  background: linear-gradient(90deg, #dfe8eb, #f4b942);
+  background: linear-gradient(120deg, #071b19, #123f39);
   border-radius: 8px;
   height: 170px;
   overflow: hidden;
   position: relative;
 }
-
-.flight-line span {
-  bottom: 38px;
-  font-size: 42px;
+.flight-line svg {
+  bottom: 46px;
+  color: #0fed83;
+  height: 44px;
   position: absolute;
-  transition: left 220ms ease;
+  transition: left 160ms ease;
+  width: 44px;
 }
-
-.aviator strong {
-  font-size: 42px;
-}
-
-.profile-lines {
+.aviator strong { font-size: 46px; }
+.ludo-track {
   display: grid;
-  gap: 12px;
+  gap: 6px;
+  grid-template-columns: repeat(5, 44px);
+}
+.ludo-track span {
+  align-items: center;
+  background: #f1e9f2;
+  border-radius: 8px;
+  display: grid;
+  height: 44px;
+  place-items: center;
+  width: 44px;
+}
+.ludo-track .token { background: #0bb36d; color: white; font-weight: 900; }
+.dice {
+  align-items: center;
+  background: #ffd23f;
+  border-radius: 8px;
+  display: grid;
+  font-size: 54px;
+  font-weight: 900;
+  height: 110px;
+  place-items: center;
+  width: 110px;
+}
+.scoreboard {
+  background: #071b19;
+  border-radius: 8px;
+  color: white;
+  padding: 20px;
+}
+.scoreboard strong { display: block; font-size: 30px; }
+
+.team-card, .invite-card, .profile-card, .panel { padding: 18px; }
+.team-card h3 span { color: #7d8b86; font-weight: 500; }
+.team-card > strong {
+  color: #0bb36d;
+  display: block;
+  font-size: 34px;
+  margin: 10px 0 14px;
+}
+.share-row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+}
+.share-row span {
+  background: #f1e9f2;
+  border-radius: 8px;
+  padding: 12px 8px;
+  text-align: center;
 }
 
-.profile-lines p {
+.profile-head {
   align-items: center;
-  border-bottom: 1px solid #e1e9eb;
+  display: flex;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.avatar {
+  background: #0bb36d;
+  border-radius: 16px;
+  color: white;
+  display: grid;
+  height: 58px;
+  place-items: center;
+  width: 58px;
+}
+.profile-head h3, .profile-head p { margin: 0; }
+.profile-head p { color: #72817c; margin-top: 4px; }
+.profile-row {
+  align-items: center;
+  background: white;
+  border-bottom: 1px solid #eee5ee;
+  color: #475651;
   display: flex;
   justify-content: space-between;
-  margin: 0;
-  min-height: 46px;
+  min-height: 56px;
+  padding: 0 8px;
+  width: 100%;
 }
+.logout-row { color: #0a9a60; }
 
 .stats {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.icon-btn {
-  align-items: center;
-  background: #173237;
-  border-radius: 8px;
-  color: white;
-  display: flex;
-  gap: 7px;
-  min-height: 36px;
-  padding: 8px 10px;
-}
-
-@media (max-width: 900px) {
-  .app-shell {
-    grid-template-columns: 1fr;
-  }
-
+@media (max-width: 860px) {
+  .app-shell { grid-template-columns: 1fr; }
   .sidebar {
     bottom: 0;
     display: grid;
-    gap: 10px;
-    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    grid-template-columns: 42px 1fr;
     left: 0;
-    padding: 10px;
+    padding: 8px 10px;
     position: fixed;
     right: 0;
     z-index: 10;
   }
-
-  .brand span,
-  nav button span,
-  .logout span {
-    display: none;
-  }
-
-  .brand-mark {
-    height: 40px;
-    width: 40px;
-  }
-
+  .sidebar .brand div, .logout { display: none; }
+  .brand img { height: 38px; width: 38px; }
   nav {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    gap: 4px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
-
-  nav button,
-  .ghost {
-    justify-content: center;
-    min-width: 42px;
-    padding: 10px;
+  nav button {
+    display: grid;
+    font-size: 11px;
+    gap: 2px;
+    justify-items: center;
+    min-height: 54px;
+    padding: 6px 2px;
   }
-
+  nav button span { display: block; }
   .content {
-    padding: 18px 14px 92px;
+    padding: 16px 12px 88px;
   }
-
-  .topbar h1 {
-    font-size: 26px;
-  }
-
-  .topbar {
-    align-items: flex-start;
-  }
-
-  .top-actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .account-btn,
-  .coin-pill {
-    min-width: 86px;
-    padding: 9px 12px;
-  }
-
-  .home-grid,
-  .grid.two,
-  .stats {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-panel {
-    align-items: start;
-    flex-direction: column;
-    gap: 22px;
-    min-height: 360px;
-    padding: 24px;
-  }
-
-  .hero-panel h2 {
-    font-size: 31px;
-  }
-
-  .game-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .color-grid {
-    grid-template-columns: repeat(2, minmax(72px, 1fr));
-  }
+  .topbar h1 { font-size: 24px; }
+  .ticker { max-width: 270px; }
+  .mini-grid, .stats { grid-template-columns: 1fr 1fr; }
+  .market-card { grid-template-columns: 1fr; }
+  .quick-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .game-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .order-card { grid-template-columns: 1fr; }
+  .order-card > div:last-child { justify-items: start; }
+  .share-row { grid-template-columns: repeat(2, 1fr); }
 }

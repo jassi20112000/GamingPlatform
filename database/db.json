@@ -50,8 +50,20 @@
     },
     {
       "id": "aviator",
-      "name": "Aviator Demo",
-      "description": "Animation-only multiplier demo.",
+      "name": "Aviator Fair Demo",
+      "description": "Fair animation multiplier demo.",
+      "active": true
+    },
+    {
+      "id": "mines",
+      "name": "Fair Mines Demo",
+      "description": "Nine-tile fair mines demo with one hidden bomb.",
+      "active": true
+    },
+    {
+      "id": "cricket",
+      "name": "Cricket Score Demo",
+      "description": "Live-style cricket scoreboard placeholder.",
       "active": true
     }
   ],

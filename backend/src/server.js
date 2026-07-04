@@ -41,7 +41,7 @@ const loginSchema = z.object({
 });
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, name: "GamingPlatform API" });
+  res.json({ ok: true, name: "DoremonKing API" });
 });
 
 app.post("/api/auth/signup", async (req, res) => {

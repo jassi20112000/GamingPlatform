@@ -1,6 +1,6 @@
 {
   "appId": "com.demo.gamingplatform",
-  "appName": "GamingPlatform",
+  "appName": "DoremonKing",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"
