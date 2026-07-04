@@ -204,7 +204,7 @@ function AuthPage({ setSession, setPage, setMessage, refresh }) {
     <section className="login-screen">
       <Brand />
       <h2>{title}</h2>
-      <p>Secure login with OTP-ready signup and password reset.</p>
+      <p>Secure member access with verified signup and account recovery.</p>
       <form className="auth-box" onSubmit={submit}>
         <div className="tabs">
           <button type="button" className={mode === "login" ? "active" : ""} onClick={() => switchMode("login")}>Login</button>
