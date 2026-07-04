@@ -1,15 +1,17 @@
-# GamingPlatform
+# DoremonKing
 
-Demo gaming platform with:
+Fair skill-gaming platform scaffold with:
 
 - React frontend
 - Node.js/Express backend
 - File-backed demo database
 - Login/signup with JWT
-- Demo wallet coins only
-- Demo games with no real betting or real payment
+- Wallet ledger and admin-controlled manual real-money mode
+- Fair 1v1 escrow match flow
+- TDS/GST ledger fields for compliance review
+- Manual real-money mode disabled by default
 - Admin panel
-- Capacitor setup for Android APK
+- Capacitor setup for Android and iOS apps
 
 ## Run Locally
 
@@ -30,7 +32,27 @@ Admin:
 
 Create normal users from the signup page.
 
-## Android APK
+## Legal/Compliance Mode
+
+Manual real-money mode is disabled by default:
+
+```text
+manualRealMoneyMode = false
+complianceStatus = pending_written_legal_approval
+```
+
+Only enable it from the admin panel after written lawyer/CA/payment-gateway approval is available.
+
+Required before public real-money launch:
+
+- 18+ age gate and KYC provider
+- Approved payment gateway and webhook reconciliation
+- State-wise legal review
+- GST and TDS reporting process
+- Responsible gaming limits and grievance workflow
+- Privacy policy, terms, refund policy, and fair-play rules
+
+## Android APK / AAB
 
 After installing Android Studio and accepting SDK licenses:
 
@@ -41,7 +63,40 @@ npm run android:sync
 npm run android:open
 ```
 
-Then build APK from Android Studio.
+Then build APK/AAB from Android Studio.
+
+Current Windows blocker if APK build fails:
+
+```text
+JAVA_HOME must point to a valid JDK installation.
+```
+
+## iOS App
+
+iOS builds require macOS with Xcode and an Apple Developer account.
+
+On a Mac:
+
+```bash
+cd frontend
+npm install
+npm run build
+npm run ios:add
+npm run ios:sync
+npm run ios:open
+```
+
+Then archive/sign the app in Xcode for TestFlight/App Store.
+
+## Mobile Login
+
+The Capacitor app points to the hosted website:
+
+```text
+https://gaming-platform-jassi20112000s-projects.vercel.app
+```
+
+So Android and iOS users use the same login/signup backend as the web app.
 
 ## Deployment
 
@@ -51,4 +106,4 @@ Recommended free stack:
 - Backend: Render
 - Database: Supabase/PostgreSQL for production
 
-This demo uses a local file database for fast local testing. Before public launch, replace it with Supabase/PostgreSQL.
+This version uses a local file database for fast MVP testing. Before real users, replace it with Supabase/PostgreSQL or another managed database.

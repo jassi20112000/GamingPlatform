@@ -1,4 +1,4 @@
-package com.demo.gamingplatform;
+package com.doremonking.app;
 
 import com.getcapacitor.BridgeActivity;
 

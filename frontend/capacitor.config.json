@@ -1,8 +1,10 @@
 {
-  "appId": "com.demo.gamingplatform",
+  "appId": "com.doremonking.app",
   "appName": "DoremonKing",
   "webDir": "dist",
   "server": {
+    "url": "https://gaming-platform-jassi20112000s-projects.vercel.app",
+    "cleartext": false,
     "androidScheme": "https"
   }
 }
