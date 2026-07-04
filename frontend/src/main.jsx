@@ -226,7 +226,7 @@ function AuthPage({ setSession, setPage, setMessage, refresh }) {
           {mode === "signup" ? (otpSent ? "Verify & Create Account" : "Send Signup OTP") : mode === "forgot" ? (otpSent ? "Reset Password" : "Send Reset OTP") : "Login"}
         </button>
         {mode === "login" && <button type="button" className="link-btn" onClick={() => switchMode("forgot")}>Forgot password?</button>}
-        <small>Demo: demo@gaming.demo / Demo@12345</small>
+        <small>Secure access for verified DoremonKing members.</small>
       </form>
     </section>
   );
