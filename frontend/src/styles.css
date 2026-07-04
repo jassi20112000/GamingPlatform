@@ -59,36 +59,72 @@ select {
 
 .sky-plane {
   animation: flyAcross 18s linear infinite;
-  background: linear-gradient(90deg, rgba(15, 166, 106, 0), rgba(15, 166, 106, 0.38), rgba(20, 110, 232, 0.2));
-  border-radius: 999px;
-  height: 4px;
+  height: 72px;
   left: -180px;
   position: absolute;
   top: 22%;
-  width: 150px;
+  width: 230px;
 }
 
 .sky-plane::before {
-  background: linear-gradient(135deg, #00a86b, #146ee8 55%, #ffbf3f);
-  clip-path: polygon(0 42%, 66% 42%, 88% 0, 100% 0, 83% 50%, 100% 100%, 88% 100%, 66% 58%, 0 58%);
+  background: linear-gradient(90deg, rgba(20, 110, 232, 0), rgba(20, 110, 232, 0.18), rgba(15, 166, 106, 0.3), rgba(255, 191, 63, 0.28));
+  border-radius: 999px;
   content: "";
-  height: 28px;
+  height: 10px;
+  left: -140px;
   position: absolute;
-  right: -18px;
-  top: -12px;
-  transform: rotate(8deg);
-  width: 66px;
+  top: 33px;
+  width: 170px;
+}
+
+.sky-plane::after {
+  background: radial-gradient(circle, rgba(255, 92, 138, 0.28), transparent 62%);
+  content: "";
+  height: 54px;
+  left: -36px;
+  position: absolute;
+  top: 8px;
+  width: 54px;
+}
+
+.sky-plane svg {
+  filter: drop-shadow(0 18px 16px rgba(4, 38, 50, 0.16));
+  height: 72px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: rotate(4deg);
+  width: 120px;
+}
+
+.plane-body {
+  fill: #0fa66a;
+}
+
+.plane-window {
+  fill: rgba(255, 255, 255, 0.86);
+}
+
+.plane-wing {
+  fill: #146ee8;
 }
 
 .plane-two {
   animation-duration: 24s;
   animation-delay: -8s;
-  background: linear-gradient(90deg, rgba(255, 92, 138, 0), rgba(255, 92, 138, 0.35), rgba(255, 194, 71, 0.22));
   top: 47%;
 }
 
 .plane-two::before {
-  background: linear-gradient(135deg, #ff5c8a, #ffbf3f 60%, #00b4d8);
+  background: linear-gradient(90deg, rgba(255, 92, 138, 0), rgba(255, 92, 138, 0.3), rgba(255, 191, 63, 0.35));
+}
+
+.plane-two .plane-body {
+  fill: #ff5c8a;
+}
+
+.plane-two .plane-wing {
+  fill: #ffbf3f;
 }
 
 .plane-three {
@@ -97,11 +133,30 @@ select {
   top: 70%;
 }
 
+.plane-three .plane-body {
+  fill: #146ee8;
+}
+
+.plane-three .plane-wing {
+  fill: #00b4d8;
+}
+
 .plane-four {
   animation-duration: 28s;
   animation-delay: -17s;
-  background: linear-gradient(90deg, rgba(20, 110, 232, 0), rgba(20, 110, 232, 0.34), rgba(15, 166, 106, 0.18));
   top: 9%;
+}
+
+.plane-four::before {
+  background: linear-gradient(90deg, rgba(123, 92, 255, 0), rgba(123, 92, 255, 0.28), rgba(0, 180, 216, 0.26));
+}
+
+.plane-four .plane-body {
+  fill: #7b5cff;
+}
+
+.plane-four .plane-wing {
+  fill: #0fa66a;
 }
 
 @keyframes flyAcross {

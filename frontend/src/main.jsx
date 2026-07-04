@@ -88,10 +88,16 @@ function App() {
   return (
     <main className="app-shell">
       <div className="sky-background" aria-hidden="true">
-        <span className="sky-plane plane-one" />
-        <span className="sky-plane plane-two" />
-        <span className="sky-plane plane-three" />
-        <span className="sky-plane plane-four" />
+        {["plane-one", "plane-two", "plane-three", "plane-four"].map((plane) => (
+          <span className={`sky-plane ${plane}`} key={plane}>
+            <svg viewBox="0 0 120 72" focusable="false">
+              <path className="plane-body" d="M112 33.8c-4.7-4-13.5-5.5-26.3-4.5L61.5 4.5c-1.8-1.9-4.6-2.5-7-1.4l-4.8 2.1 13.6 27.1-27.9 4.3-12.5-10.7c-1.5-1.3-3.6-1.6-5.4-.8l-4.7 2.1 9.1 16.5-8.9 16.7 4.8 2c1.8.8 3.9.4 5.4-.9l12.4-10.9 27.9 4-13.3 27.3 4.8 2c2.4 1 5.2.4 7-1.5l23.9-25c12.9.8 21.6-.8 26.2-4.9 2.1-1.8 3.2-4.3 3.2-7.3s-1.2-5.5-3.3-7.4Z" />
+              <path className="plane-window" d="M82.6 35.4c8-.5 14 .1 18 1.9 2.6 1.2 4 2.7 4 4.5s-1.3 3.3-3.9 4.5c-4 1.8-10 2.5-18 2l-42.4-6.1 42.3-6.8Z" />
+              <path className="plane-wing" d="M58.4 12.9 75.7 31l-6.5.9-10.8-19Z" />
+              <path className="plane-wing" d="M58.6 70.8 75.6 52.4l-6.5-.8-10.5 19.2Z" />
+            </svg>
+          </span>
+        ))}
       </div>
       <aside className="sidebar">
         <Brand />
