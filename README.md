@@ -28,11 +28,13 @@ Backend: http://localhost:4000
 Admin:
 
 - Email: `admin@doremonking.app`
+- User ID: `ADMIN`
 - Password: `Admin@12345`
 
 Member:
 
 - Email: `member@doremonking.app`
+- User ID: `MEMBER`
 - Password: `Member@12345`
 
 Create new users from the signup page.

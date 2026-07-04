@@ -2,6 +2,7 @@
   "users": [
     {
       "id": "admin-main",
+      "userCode": "ADMIN",
       "name": "DoremonKing Admin",
       "email": "admin@doremonking.app",
       "passwordHash": "$2b$10$oRyMTnzX.Jc5nugnJsOsk.kFZuQXMWH/g9MwVBixNywy4a1fw.lqy",
@@ -11,6 +12,7 @@
     },
     {
       "id": "member-main",
+      "userCode": "MEMBER",
       "name": "Member Account",
       "email": "member@doremonking.app",
       "passwordHash": "$2b$10$GQZ9g7RVQPKF7Od1Sm6oWORKC/YMwF/n6XInwzN14G4kLu7CaX1b6",

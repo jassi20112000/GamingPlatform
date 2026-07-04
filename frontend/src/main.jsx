@@ -166,14 +166,14 @@ function AuthPage({ setSession, setPage, setMessage, refresh }) {
     try {
       if (mode === "forgot") {
         if (!otpSent) {
-          const result = await api("/api/auth/password/otp", { method: "POST", body: JSON.stringify({ email: form.email }) });
+          const result = await api("/api/auth/password/otp", { method: "POST", body: JSON.stringify({ identifier: form.email }) });
           setOtpSent(true);
           setSetupOtp(result.setupOtp || "");
           return setMessage(result.message);
         }
         const result = await api("/api/auth/password/reset", {
           method: "POST",
-          body: JSON.stringify({ email: form.email, otp: form.otp, password: form.newPassword })
+          body: JSON.stringify({ identifier: form.email, otp: form.otp, password: form.newPassword })
         });
         setMode("login");
         setOtpSent(false);
@@ -198,7 +198,7 @@ function AuthPage({ setSession, setPage, setMessage, refresh }) {
         return refresh().catch(() => {});
       }
 
-      const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ email: form.email, password: form.password }) });
+      const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ identifier: form.email, password: form.password }) });
       setToken(data.token);
       setSession((current) => ({ ...current, user: data.user }));
       setPage("dashboard");
@@ -222,7 +222,7 @@ function AuthPage({ setSession, setPage, setMessage, refresh }) {
           <button type="button" className={mode === "signup" ? "active" : ""} onClick={() => switchMode("signup")}>Signup</button>
         </div>
         {mode === "signup" && <input placeholder="Username" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />}
-        <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <input placeholder="Email or User ID" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
         {mode !== "forgot" && !otpSent && <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />}
         {mode === "forgot" && otpSent && <input placeholder="New password" type="password" value={form.newPassword} onChange={(e) => setForm({ ...form, newPassword: e.target.value })} />}
         {otpSent && <input placeholder="6 digit OTP" inputMode="numeric" value={form.otp} onChange={(e) => setForm({ ...form, otp: e.target.value })} />}
@@ -251,6 +251,7 @@ function Dashboard({ session, setPage, orders, settings }) {
       <div className="balance-hero">
         <span>Wallet Balance</span>
         <strong>{coins.toFixed(2)}</strong>
+        <small>User ID: {session.user?.userCode || session.user?.id}</small>
         <button onClick={() => setPage("orders")}>Bill Details</button>
       </div>
       <div className="mini-grid">
@@ -646,6 +647,7 @@ function Profile({ session, logout, setMessage }) {
           <div>
             <h3>{session.user?.name}</h3>
             <p>{session.user?.email}</p>
+            <p>User ID: {session.user?.userCode || session.user?.id}</p>
           </div>
         </div>
         {rows.map((row) => <button key={row} className="profile-row">{row}<span>{">"}</span></button>)}

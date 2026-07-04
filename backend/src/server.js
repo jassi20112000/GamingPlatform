@@ -41,19 +41,22 @@ const signupVerifySchema = z.object({
 });
 
 const loginSchema = z.object({
-  email: z.string().trim().email(),
+  identifier: z.string().trim().min(2).max(120).optional(),
+  email: z.string().trim().min(2).max(120).optional(),
   password: z.string().min(1)
-});
+}).refine((data) => data.identifier || data.email, { message: "Identifier required" });
 
 const passwordOtpSchema = z.object({
-  email: z.string().trim().email().max(120)
-});
+  identifier: z.string().trim().min(2).max(120).optional(),
+  email: z.string().trim().min(2).max(120).optional()
+}).refine((data) => data.identifier || data.email, { message: "Identifier required" });
 
 const resetPasswordSchema = z.object({
-  email: z.string().trim().email().max(120),
+  identifier: z.string().trim().min(2).max(120).optional(),
+  email: z.string().trim().min(2).max(120).optional(),
   otp: z.string().trim().regex(/^\d{6}$/),
   password: z.string().min(8).max(72)
-});
+}).refine((data) => data.identifier || data.email, { message: "Identifier required" });
 
 const orderSchema = z.object({
   amount: z.number().min(1).max(100000),
@@ -103,6 +106,30 @@ function findWallet(db, userId) {
 function normalizeLoginEmail(email) {
   const normalized = email.toLowerCase();
   return loginAliases[normalized] || normalized;
+}
+
+function normalizeIdentifier(identifier) {
+  return identifier.trim().toLowerCase();
+}
+
+function findUserByIdentifier(db, identifier) {
+  const normalized = normalizeIdentifier(identifier);
+  const emailCandidates = new Set([normalized, normalizeLoginEmail(normalized)]);
+  Object.entries(loginAliases).forEach(([legacyEmail, currentEmail]) => {
+    if (currentEmail === normalized) emailCandidates.add(legacyEmail);
+  });
+  return db.users.find((item) => {
+    const userCode = item.userCode?.toLowerCase();
+    return emailCandidates.has(item.email) || item.id.toLowerCase() === normalized || userCode === normalized;
+  });
+}
+
+function generateUserCode(db) {
+  let code = "";
+  do {
+    code = `DK${Math.floor(100000 + Math.random() * 900000)}`;
+  } while (db.users.some((user) => user.userCode === code));
+  return code;
 }
 
 function requireWalletBalance(wallet, amount) {
@@ -181,6 +208,7 @@ async function verifyOtp(db, purpose, email, otp) {
 function createUserFromSignup(db, signup) {
   const user = {
     id: uuid(),
+    userCode: generateUserCode(db),
     name: signup.name,
     email: signup.email.toLowerCase(),
     passwordHash: signup.passwordHash,
@@ -260,7 +288,7 @@ app.post("/api/auth/login", async (req, res) => {
   if (!parsed.success) return res.status(400).json({ message: "Check login details" });
 
   const db = readDb();
-  const user = db.users.find((item) => item.email === normalizeLoginEmail(parsed.data.email));
+  const user = findUserByIdentifier(db, parsed.data.identifier || parsed.data.email);
   if (!user || !(await bcrypt.compare(parsed.data.password, user.passwordHash))) {
     return res.status(401).json({ message: "Invalid email or password" });
   }
@@ -271,15 +299,14 @@ app.post("/api/auth/login", async (req, res) => {
 
 app.post("/api/auth/password/otp", async (req, res) => {
   const parsed = passwordOtpSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ message: "Enter a valid email" });
+  if (!parsed.success) return res.status(400).json({ message: "Enter a valid email or user ID" });
 
   const db = readDb();
-  const email = normalizeLoginEmail(parsed.data.email);
-  const user = db.users.find((item) => item.email === email);
-  if (!user) return res.status(404).json({ message: "Email not registered" });
+  const user = findUserByIdentifier(db, parsed.data.identifier || parsed.data.email);
+  if (!user) return res.status(404).json({ message: "Account not registered" });
 
-  const { otp } = await createOtp(db, "password_reset", email);
-  const telegramSent = await sendTelegramMessage(`DoremonKing password reset OTP for ${email}: ${otp}`);
+  const { otp } = await createOtp(db, "password_reset", user.email);
+  const telegramSent = await sendTelegramMessage(`DoremonKing password reset OTP for ${user.email}: ${otp}`);
   writeDb(db);
   res.json({
     message: telegramSent ? "Password reset OTP sent to admin Telegram bot." : "Password reset OTP created. Configure Telegram bot for live delivery.",
@@ -293,10 +320,9 @@ app.post("/api/auth/password/reset", async (req, res) => {
   if (!parsed.success) return res.status(400).json({ message: "Check reset details" });
 
   const db = readDb();
-  const email = normalizeLoginEmail(parsed.data.email);
-  const user = db.users.find((item) => item.email === email);
-  if (!user) return res.status(404).json({ message: "Email not registered" });
-  const verification = await verifyOtp(db, "password_reset", email, parsed.data.otp);
+  const user = findUserByIdentifier(db, parsed.data.identifier || parsed.data.email);
+  if (!user) return res.status(404).json({ message: "Account not registered" });
+  const verification = await verifyOtp(db, "password_reset", user.email, parsed.data.otp);
   if (!verification.ok) {
     writeDb(db);
     return res.status(400).json({ message: verification.message });
