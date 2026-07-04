@@ -46,12 +46,22 @@ function App() {
   const [settings, setSettings] = useState({ manualRealMoneyMode: false, complianceStatus: "pending_written_legal_approval" });
 
   async function refresh() {
-    const settingsData = await api("/api/settings");
-    setSettings(settingsData.settings);
+    try {
+      const settingsData = await api("/api/settings");
+      setSettings(settingsData.settings);
+    } catch {
+      setSettings({ manualRealMoneyMode: false, complianceStatus: "pending_written_legal_approval" });
+    }
     if (!getToken()) return;
     try {
-      setSession(await api("/api/me"));
-      const orderData = await api("/api/orders");
+      const nextSession = await api("/api/me");
+      setSession(nextSession);
+      let orderData = { orders: [] };
+      try {
+        orderData = await api("/api/orders");
+      } catch {
+        orderData = { orders: [] };
+      }
       setOrders(orderData.orders || []);
     } catch {
       clearToken();
@@ -131,6 +141,7 @@ function Brand() {
       <div>
         <strong>DoremonKing</strong>
         <span>Secure skill gaming</span>
+        <span>Created by Jassi Singh</span>
       </div>
     </div>
   );
@@ -181,18 +192,18 @@ function AuthPage({ setSession, setPage, setMessage, refresh }) {
         }
         const data = await api("/api/auth/signup/verify", { method: "POST", body: JSON.stringify({ email: form.email, otp: form.otp }) });
         setToken(data.token);
-        await refresh();
         setSession((current) => ({ ...current, user: data.user }));
         setPage("dashboard");
-        return setMessage("Account created with signup bonus.");
+        setMessage("Account created successfully.");
+        return refresh().catch(() => {});
       }
 
       const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ email: form.email, password: form.password }) });
       setToken(data.token);
-      await refresh();
       setSession((current) => ({ ...current, user: data.user }));
       setPage("dashboard");
       setMessage("Logged in successfully.");
+      await refresh().catch(() => {});
     } catch (error) {
       setMessage(error.message);
     }

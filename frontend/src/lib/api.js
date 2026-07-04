@@ -23,9 +23,16 @@ export async function api(path, options = {}) {
       ...(options.headers || {})
     }
   });
-  const data = await response.json().catch(() => ({}));
+  const text = await response.text();
+  const data = text ? (() => {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return {};
+    }
+  })() : {};
   if (!response.ok) {
-    throw new Error(data.message || "Something went wrong");
+    throw new Error(data.message || `Service unavailable (${response.status})`);
   }
   return data;
 }
