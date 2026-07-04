@@ -8,6 +8,13 @@
 body { margin: 0; }
 button, input { font: inherit; }
 button { border: 0; cursor: pointer; }
+select {
+  background: white;
+  border: 1px solid #ddd2dc;
+  border-radius: 8px;
+  min-height: 46px;
+  padding: 10px 12px;
+}
 
 .app-shell {
   display: grid;
@@ -413,6 +420,30 @@ nav button.active, nav button:hover, .ghost:hover { background: #0fa66a; color: 
   width: 100%;
 }
 .logout-row { color: #0a9a60; }
+
+.tool-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+.tool-form input {
+  border: 1px solid #ddd2dc;
+  border-radius: 8px;
+  min-height: 46px;
+  padding: 10px 12px;
+}
+.compact-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.compact-list p {
+  background: #f6eef7;
+  border-radius: 8px;
+  color: #475651;
+  margin: 0;
+  padding: 10px 12px;
+}
 
 .stats {
   display: grid;

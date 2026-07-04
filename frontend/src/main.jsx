@@ -48,9 +48,12 @@ function App() {
     if (!getToken()) return;
     try {
       setSession(await api("/api/me"));
+      const orderData = await api("/api/orders");
+      setOrders(orderData.orders || []);
     } catch {
       clearToken();
       setSession({ user: null, wallet: null, scores: [] });
+      setOrders([]);
     }
   }
 
@@ -108,10 +111,10 @@ function App() {
 
         {!session.user && <AuthPage setSession={setSession} setPage={setPage} setMessage={setMessage} refresh={refresh} />}
         {session.user && page === "dashboard" && <Dashboard session={session} setPage={setPage} orders={orders} />}
-        {session.user && page === "orders" && <OrdersPage orders={orders} setOrders={setOrders} setMessage={setMessage} />}
+        {session.user && page === "orders" && <OrdersPage orders={orders} refresh={refresh} setMessage={setMessage} />}
         {session.user && page === "games" && <GamesPage refresh={refresh} setMessage={setMessage} />}
         {session.user && page === "team" && <TeamPage />}
-        {session.user && page === "profile" && <Profile session={session} logout={logout} />}
+        {session.user && page === "profile" && <Profile session={session} logout={logout} setMessage={setMessage} />}
         {session.user && page === "admin" && <AdminPanel />}
       </section>
     </main>
@@ -222,15 +225,22 @@ function StatTile({ icon: Icon, label, value }) {
   );
 }
 
-function OrdersPage({ orders, setOrders, setMessage }) {
+function OrdersPage({ orders, refresh, setMessage }) {
   const [mode, setMode] = useState("buy");
   const [tier, setTier] = useState("Small");
   const filtered = orderCards.filter((card) => card.tier === tier);
 
-  function placeOrder(card) {
-    const income = Number((card.amount * card.rate / 100).toFixed(2));
-    setOrders((items) => [{ ...card, income, time: new Date().toLocaleTimeString() }, ...items]);
-    setMessage(`Demo order completed: +${income.toFixed(2)} demo rupees.`);
+  async function placeOrder(card) {
+    try {
+      const result = await api("/api/orders", {
+        method: "POST",
+        body: JSON.stringify({ amount: card.amount, rate: card.rate, method: card.method, tier: card.tier })
+      });
+      setMessage(`Demo order completed: +${result.order.income.toFixed(2)} demo rupees.`);
+      await refresh();
+    } catch (error) {
+      setMessage(error.message);
+    }
   }
 
   return (
@@ -267,7 +277,22 @@ function OrdersPage({ orders, setOrders, setMessage }) {
           })}
         </div>
       ) : (
-        <div className="empty-state">Sell orders will appear after demo orders are completed.</div>
+        <div className="order-list">
+          {orders.length ? orders.map((order) => (
+            <article className="order-card" key={order.id}>
+              <div>
+                <span className="rupee">Rs</span>
+                <strong>{order.amount.toFixed(2)} INR</strong>
+                <em>{order.method}</em>
+                <p>{order.income.toFixed(2)} income ({order.rate}% demo)</p>
+              </div>
+              <div>
+                <strong>{order.status.replaceAll("_", " ")}</strong>
+                <span>{new Date(order.createdAt).toLocaleString()}</span>
+              </div>
+            </article>
+          )) : <div className="empty-state">Sell orders will appear after demo orders are completed.</div>}
+        </div>
       )}
     </section>
   );
@@ -428,19 +453,98 @@ function TeamPage() {
   );
 }
 
-function Profile({ session, logout }) {
-  const rows = ["Bill detail", "Invite subline", "Email bind", "Login password", "Pin code", "Telegram bind", "UPI/Bank demo setup"];
+function Profile({ session, logout, setMessage }) {
+  const [methods, setMethods] = useState([]);
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [eligibility, setEligibility] = useState({ minimumOrderVolume: 5000, orderVolume: 0, eligible: false });
+  const [methodForm, setMethodForm] = useState({ type: "UPI", label: "PhonePe", accountRef: "" });
+  const [withdrawForm, setWithdrawForm] = useState({ amount: 100, method: "UPI" });
+
+  async function loadProfileTools() {
+    const [methodData, withdrawalData] = await Promise.all([
+      api("/api/payment-methods"),
+      api("/api/withdrawals")
+    ]);
+    setMethods(methodData.methods || []);
+    setWithdrawals(withdrawalData.withdrawals || []);
+    setEligibility(withdrawalData.eligibility);
+  }
+
+  useEffect(() => {
+    loadProfileTools().catch((error) => setMessage(error.message));
+  }, []);
+
+  async function saveMethod(event) {
+    event.preventDefault();
+    try {
+      await api("/api/payment-methods", { method: "POST", body: JSON.stringify(methodForm) });
+      setMethodForm({ ...methodForm, accountRef: "" });
+      setMessage("Demo payment method saved.");
+      await loadProfileTools();
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
+  async function requestWithdrawal(event) {
+    event.preventDefault();
+    try {
+      const result = await api("/api/withdrawals", { method: "POST", body: JSON.stringify({ ...withdrawForm, amount: Number(withdrawForm.amount) }) });
+      setMessage(result.withdrawal.status === "pending_admin_review" ? "Withdrawal request sent for admin review." : "Withdrawal locked until demo order volume reaches 5000.");
+      await loadProfileTools();
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
+  const rows = ["Bill detail", "Invite subline", "Email bind", "Login password", "Pin code", "Telegram bind"];
   return (
-    <section className="profile-card">
-      <div className="profile-head">
-        <div className="avatar"><User /></div>
-        <div>
-          <h3>{session.user?.name}</h3>
-          <p>{session.user?.email}</p>
+    <section className="mobile-stack">
+      <div className="profile-card">
+        <div className="profile-head">
+          <div className="avatar"><User /></div>
+          <div>
+            <h3>{session.user?.name}</h3>
+            <p>{session.user?.email}</p>
+          </div>
+        </div>
+        {rows.map((row) => <button key={row} className="profile-row">{row}<span>{">"}</span></button>)}
+        <button className="profile-row logout-row" onClick={logout}>Logout<span>{">"}</span></button>
+      </div>
+
+      <div className="profile-card">
+        <h3>Add UPI / Bank Demo Account</h3>
+        <form className="tool-form" onSubmit={saveMethod}>
+          <select value={methodForm.type} onChange={(event) => setMethodForm({ ...methodForm, type: event.target.value })}>
+            <option>UPI</option>
+            <option>Bank</option>
+          </select>
+          <input placeholder="Provider label" value={methodForm.label} onChange={(event) => setMethodForm({ ...methodForm, label: event.target.value })} />
+          <input placeholder="UPI ID or masked account ref" value={methodForm.accountRef} onChange={(event) => setMethodForm({ ...methodForm, accountRef: event.target.value })} />
+          <button className="primary-btn">Save Demo Method</button>
+        </form>
+        <div className="compact-list">
+          {methods.map((method) => <p key={method.id}><strong>{method.type}</strong> {method.label} - {method.accountRef}</p>)}
+          {!methods.length && <p className="notice">No demo payment methods saved.</p>}
         </div>
       </div>
-      {rows.map((row) => <button key={row} className="profile-row">{row}<span>›</span></button>)}
-      <button className="profile-row logout-row" onClick={logout}>Logout<span>›</span></button>
+
+      <div className="profile-card">
+        <h3>Withdrawal Request</h3>
+        <p className="notice">Demo-only request. Current order volume: {eligibility.orderVolume.toFixed(2)} / {eligibility.minimumOrderVolume}</p>
+        <form className="tool-form" onSubmit={requestWithdrawal}>
+          <input type="number" min="1" value={withdrawForm.amount} onChange={(event) => setWithdrawForm({ ...withdrawForm, amount: event.target.value })} />
+          <select value={withdrawForm.method} onChange={(event) => setWithdrawForm({ ...withdrawForm, method: event.target.value })}>
+            <option>UPI</option>
+            <option>Bank</option>
+          </select>
+          <button className="primary-btn">Request Review</button>
+        </form>
+        <div className="compact-list">
+          {withdrawals.map((item) => <p key={item.id}><strong>{item.amount}</strong> {item.method} - {item.status.replaceAll("_", " ")}</p>)}
+          {!withdrawals.length && <p className="notice">No withdrawal requests yet.</p>}
+        </div>
+      </div>
     </section>
   );
 }
@@ -459,12 +563,26 @@ function AdminPanel() {
       <div className="grid stats">
         <StatTile icon={User} label="Total Users" value={data.totals.users} />
         <StatTile icon={Activity} label="Active Users" value={data.totals.activeUsers} />
-        <StatTile icon={Gamepad2} label="Game Activity" value={data.totals.scores} />
-        <StatTile icon={Wallet} label="Wallet Logs" value={data.totals.transactions} />
+        <StatTile icon={ListChecks} label="Demo Orders" value={data.totals.orders} />
+        <StatTile icon={Wallet} label="Withdrawals" value={data.totals.withdrawals} />
       </div>
       <div className="panel">
         <h3>Compliance Notes</h3>
         <p className="notice">Real withdrawals, UPI collection, betting, and paid contests are disabled until licensed gateway, KYC, tax, and legal compliance are integrated.</p>
+      </div>
+      <div className="panel">
+        <h3>Recent Orders</h3>
+        <div className="compact-list">
+          {data.orders?.map((order) => <p key={order.id}>{order.tier} - {order.amount} via {order.method} - income {order.income}</p>)}
+          {!data.orders?.length && <p className="notice">No demo orders yet.</p>}
+        </div>
+      </div>
+      <div className="panel">
+        <h3>Withdrawal Requests</h3>
+        <div className="compact-list">
+          {data.withdrawals?.map((item) => <p key={item.id}>{item.amount} via {item.method} - {item.status.replaceAll("_", " ")}</p>)}
+          {!data.withdrawals?.length && <p className="notice">No withdrawal requests yet.</p>}
+        </div>
       </div>
     </section>
   );

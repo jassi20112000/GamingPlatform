@@ -40,6 +40,24 @@ const loginSchema = z.object({
   password: z.string().min(1)
 });
 
+const orderSchema = z.object({
+  amount: z.number().min(1).max(100000),
+  rate: z.number().min(0).max(20),
+  method: z.enum(["Bank", "UPI"]),
+  tier: z.enum(["Small", "Medium", "Large"])
+});
+
+const withdrawalSchema = z.object({
+  amount: z.number().min(1).max(100000),
+  method: z.enum(["Bank", "UPI"])
+});
+
+const paymentMethodSchema = z.object({
+  type: z.enum(["Bank", "UPI"]),
+  label: z.string().trim().min(2).max(60),
+  accountRef: z.string().trim().min(3).max(80)
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, name: "DoremonKing API" });
 });
@@ -130,6 +148,100 @@ app.get("/api/wallet", requireAuth, (req, res) => {
   res.json({ wallet, transactions });
 });
 
+app.get("/api/orders", requireAuth, (req, res) => {
+  const db = readDb();
+  const orders = (db.orders || []).filter((item) => item.userId === req.user.id).slice(-50).reverse();
+  res.json({ orders });
+});
+
+app.post("/api/orders", requireAuth, (req, res) => {
+  const parsed = orderSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid order details" });
+
+  const db = readDb();
+  db.orders ||= [];
+  db.transactions ||= [];
+  const income = Number((parsed.data.amount * parsed.data.rate / 100).toFixed(2));
+  const order = {
+    id: uuid(),
+    userId: req.user.id,
+    ...parsed.data,
+    income,
+    status: "completed_demo",
+    createdAt: new Date().toISOString()
+  };
+  db.orders.push(order);
+  db.transactions.push({
+    id: uuid(),
+    userId: req.user.id,
+    type: "demo_order_income",
+    amount: income,
+    note: `${parsed.data.tier} demo order income`,
+    createdAt: new Date().toISOString()
+  });
+  writeDb(db);
+  res.status(201).json({ order });
+});
+
+app.get("/api/payment-methods", requireAuth, (req, res) => {
+  const db = readDb();
+  const methods = (db.paymentMethods || []).filter((item) => item.userId === req.user.id);
+  res.json({ methods });
+});
+
+app.post("/api/payment-methods", requireAuth, (req, res) => {
+  const parsed = paymentMethodSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid payment method details" });
+  const db = readDb();
+  db.paymentMethods ||= [];
+  const method = {
+    id: uuid(),
+    userId: req.user.id,
+    ...parsed.data,
+    status: "demo_only",
+    createdAt: new Date().toISOString()
+  };
+  db.paymentMethods.push(method);
+  writeDb(db);
+  res.status(201).json({ method });
+});
+
+app.get("/api/withdrawals", requireAuth, (req, res) => {
+  const db = readDb();
+  const orders = (db.orders || []).filter((item) => item.userId === req.user.id);
+  const orderVolume = orders.reduce((sum, item) => sum + item.amount, 0);
+  const withdrawals = (db.withdrawals || []).filter((item) => item.userId === req.user.id).slice(-20).reverse();
+  res.json({
+    withdrawals,
+    eligibility: {
+      minimumOrderVolume: 5000,
+      orderVolume,
+      eligible: orderVolume >= 5000
+    }
+  });
+});
+
+app.post("/api/withdrawals", requireAuth, (req, res) => {
+  const parsed = withdrawalSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid withdrawal details" });
+  const db = readDb();
+  db.withdrawals ||= [];
+  const orders = (db.orders || []).filter((item) => item.userId === req.user.id);
+  const orderVolume = orders.reduce((sum, item) => sum + item.amount, 0);
+  const locked = orderVolume < 5000;
+  const withdrawal = {
+    id: uuid(),
+    userId: req.user.id,
+    ...parsed.data,
+    status: locked ? "locked_minimum_order_volume" : "pending_admin_review",
+    orderVolume,
+    createdAt: new Date().toISOString()
+  };
+  db.withdrawals.push(withdrawal);
+  writeDb(db);
+  res.status(201).json({ withdrawal });
+});
+
 app.post("/api/wallet/daily-reward", requireAuth, (req, res) => {
   const db = readDb();
   const today = new Date().toISOString().slice(0, 10);
@@ -154,11 +266,16 @@ app.get("/api/admin/overview", requireAuth, requireAdmin, (_req, res) => {
       activeUsers,
       games: db.games.length,
       scores: db.scores.length,
-      transactions: db.transactions.length
+      transactions: db.transactions.length,
+      orders: (db.orders || []).length,
+      withdrawals: (db.withdrawals || []).length
     },
     users: db.users.map(publicUser),
     transactions: db.transactions.slice(-50).reverse(),
-    scores: db.scores.slice(-50).reverse()
+    scores: db.scores.slice(-50).reverse(),
+    orders: (db.orders || []).slice(-50).reverse(),
+    withdrawals: (db.withdrawals || []).slice(-50).reverse(),
+    paymentMethods: (db.paymentMethods || []).slice(-50).reverse()
   });
 });
 
