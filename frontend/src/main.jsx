@@ -210,7 +210,7 @@ function AuthPage({ setSession, setPage, setMessage, refresh }) {
         return refresh().catch(() => {});
       }
 
-      const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ identifier: form.email, password: form.password }) });
+      const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ identifier: form.email, email: form.email, password: form.password }) });
       setToken(data.token);
       setSession((current) => ({ ...current, user: data.user }));
       setPage("dashboard");
