@@ -1,10 +1,10 @@
 # DoremonKing
 
-Fair skill-gaming platform scaffold with:
+DoremonKing skill-gaming platform with:
 
 - React frontend
 - Node.js/Express backend
-- File-backed demo database
+- File-backed JSON database for MVP testing
 - Login/signup with JWT
 - Wallet ledger and admin-controlled manual real-money mode
 - Fair 1v1 escrow match flow
@@ -23,14 +23,19 @@ npm run dev
 Frontend: http://localhost:5173  
 Backend: http://localhost:4000
 
-## Demo Accounts
+## Access Accounts
 
 Admin:
 
-- Email: `admin@gaming.demo`
+- Email: `admin@doremonking.app`
 - Password: `Admin@12345`
 
-Create normal users from the signup page.
+Member:
+
+- Email: `member@doremonking.app`
+- Password: `Member@12345`
+
+Create new users from the signup page.
 
 ## Signup OTP / Forgot Password
 
@@ -47,7 +52,7 @@ If Telegram is not configured yet, the app shows a temporary setup OTP so testin
 
 ## Legal/Compliance Mode
 
-Manual real-money mode is disabled by default:
+Manual real-money mode is disabled by default until written approval:
 
 ```text
 manualRealMoneyMode = false
@@ -119,4 +124,4 @@ Recommended free stack:
 - Backend: Render
 - Database: Supabase/PostgreSQL for production
 
-This version uses a local file database for fast MVP testing. Before real users, replace it with Supabase/PostgreSQL or another managed database.
+This version uses a local file database for MVP testing. Before real users, replace it with Supabase/PostgreSQL or another managed database.

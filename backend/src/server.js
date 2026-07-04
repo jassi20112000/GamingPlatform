@@ -91,9 +91,18 @@ const settingsSchema = z.object({
 const platformFeeRate = 0.08;
 const tdsRate = 0.30;
 const gstRate = 0.28;
+const loginAliases = {
+  "admin@gaming.demo": "admin@doremonking.app",
+  "demo@gaming.demo": "member@doremonking.app"
+};
 
 function findWallet(db, userId) {
   return db.wallets.find((item) => item.userId === userId);
+}
+
+function normalizeLoginEmail(email) {
+  const normalized = email.toLowerCase();
+  return loginAliases[normalized] || normalized;
 }
 
 function requireWalletBalance(wallet, amount) {
@@ -186,7 +195,7 @@ function createUserFromSignup(db, signup) {
     userId: user.id,
     type: "signup_bonus",
     amount: 500,
-    note: "Signup bonus demo coins",
+    note: "Signup bonus wallet units",
     createdAt: new Date().toISOString()
   });
   return user;
@@ -251,7 +260,7 @@ app.post("/api/auth/login", async (req, res) => {
   if (!parsed.success) return res.status(400).json({ message: "Check login details" });
 
   const db = readDb();
-  const user = db.users.find((item) => item.email === parsed.data.email.toLowerCase());
+  const user = db.users.find((item) => item.email === normalizeLoginEmail(parsed.data.email));
   if (!user || !(await bcrypt.compare(parsed.data.password, user.passwordHash))) {
     return res.status(401).json({ message: "Invalid email or password" });
   }
@@ -360,16 +369,16 @@ app.post("/api/orders", requireAuth, (req, res) => {
     userId: req.user.id,
     ...parsed.data,
     income,
-    status: "completed_demo",
+    status: "completed_review",
     createdAt: new Date().toISOString()
   };
   db.orders.push(order);
   db.transactions.push({
     id: uuid(),
     userId: req.user.id,
-    type: "demo_order_income",
+    type: "order_reward",
     amount: income,
-    note: `${parsed.data.tier} demo order income`,
+    note: `${parsed.data.tier} order reward`,
     createdAt: new Date().toISOString()
   });
   writeDb(db);
@@ -394,7 +403,7 @@ app.post("/api/matches", requireAuth, (req, res) => {
   db.transactions ||= [];
   const wallet = findWallet(db, req.user.id);
   if (!requireWalletBalance(wallet, parsed.data.entryAmount)) {
-    return res.status(400).json({ message: "Insufficient demo wallet balance" });
+    return res.status(400).json({ message: "Insufficient wallet balance" });
   }
 
   wallet.coins -= parsed.data.entryAmount;
@@ -431,7 +440,7 @@ app.post("/api/matches/:matchId/join", requireAuth, (req, res) => {
 
   const wallet = findWallet(db, req.user.id);
   if (!requireWalletBalance(wallet, match.entryAmount)) {
-    return res.status(400).json({ message: "Insufficient demo wallet balance" });
+    return res.status(400).json({ message: "Insufficient wallet balance" });
   }
 
   wallet.coins -= match.entryAmount;
@@ -488,7 +497,7 @@ app.post("/api/payment-methods", requireAuth, (req, res) => {
     id: uuid(),
     userId: req.user.id,
     ...parsed.data,
-    status: "demo_only",
+    status: "pending_review",
     createdAt: new Date().toISOString()
   };
   db.paymentMethods.push(method);
@@ -542,7 +551,7 @@ app.post("/api/wallet/daily-reward", requireAuth, (req, res) => {
   const wallet = db.wallets.find((item) => item.userId === req.user.id);
   wallet.coins += amount;
   db.dailyRewards.push({ userId: req.user.id, date: today });
-  db.transactions.push({ id: uuid(), userId: req.user.id, type: "daily_reward", amount, note: "Daily demo reward", createdAt: new Date().toISOString() });
+  db.transactions.push({ id: uuid(), userId: req.user.id, type: "daily_reward", amount, note: "Daily reward", createdAt: new Date().toISOString() });
   writeDb(db);
   res.json({ amount, wallet });
 });
@@ -656,5 +665,5 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(port, () => {
-  console.log(`GamingPlatform API running on http://localhost:${port}`);
+  console.log(`DoremonKing API running on http://localhost:${port}`);
 });

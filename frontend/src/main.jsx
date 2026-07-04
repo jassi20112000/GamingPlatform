@@ -111,7 +111,7 @@ function App() {
       <section className="content">
         <header className="topbar">
           <div>
-            <p className="ticker">DoremonKing will never ask you to send money privately. {settings.manualRealMoneyMode ? "Manual mode enabled by admin." : "Manual real-money mode disabled."}</p>
+            <p className="ticker">DoremonKing official platform. Never share OTP, password, or funds outside the app.</p>
             <h1>{session.user ? `Hello, ${session.user.name}` : "Welcome to DoremonKing"}</h1>
           </div>
           <div className="top-actions">
@@ -274,7 +274,7 @@ function Dashboard({ session, setPage, orders, settings }) {
         </svg>
       </section>
       <button className="promo" onClick={() => setPage("orders")}>Up to 8% reward tracking per completed order</button>
-      <button className="promo outline" onClick={() => setPage("games")}>{settings.manualRealMoneyMode ? "Fair 1v1 manual mode active" : "Practice fair games while manual mode is disabled"}</button>
+      <button className="promo outline" onClick={() => setPage("games")}>{settings.manualRealMoneyMode ? "Fair 1v1 manual mode active" : "Play fair skill games with transparent rules"}</button>
     </section>
   );
 }
@@ -318,7 +318,7 @@ function OrdersPage({ orders, refresh, setMessage }) {
           <button key={item} className={tier === item ? "active" : ""} onClick={() => setTier(item)}>{item}</button>
         ))}
       </div>
-      <p className="notice">Orders are currently in practice mode. Live payment/withdrawal requires licensed gateway approval.</p>
+      <p className="notice">Orders are currently in review mode. Live payment/withdrawal requires licensed gateway approval.</p>
       {mode === "buy" ? (
         <div className="order-list">
           {filtered.map((card) => {
@@ -329,7 +329,7 @@ function OrdersPage({ orders, refresh, setMessage }) {
                   <span className="rupee">Rs</span>
                   <strong>{card.amount.toFixed(2)} INR</strong>
                   <em>{card.method}</em>
-                  <p>{income.toFixed(2)} reward ({card.rate}% practice)</p>
+                  <p>{income.toFixed(2)} reward ({card.rate}% tracking)</p>
                 </div>
                 <div>
                   <strong>+{(card.amount + income).toFixed(2)}</strong>
@@ -348,7 +348,7 @@ function OrdersPage({ orders, refresh, setMessage }) {
                 <span className="rupee">Rs</span>
                 <strong>{order.amount.toFixed(2)} INR</strong>
                 <em>{order.method}</em>
-                <p>{order.income.toFixed(2)} reward ({order.rate}% practice)</p>
+                <p>{order.income.toFixed(2)} reward ({order.rate}% tracking)</p>
               </div>
               <div>
                 <strong>{order.status.replaceAll("_", " ")}</strong>
@@ -573,7 +573,7 @@ function TeamPage() {
   return (
     <section className="mobile-stack">
       <div className="team-card">
-        <h3>Total rebate <span>[Practice]</span></h3>
+        <h3>Total rebate <span>[Review]</span></h3>
         <strong>0</strong>
         <div className="mini-grid">
           <StatTile label="Today deposit count" value="0" icon={Banknote} />
@@ -671,7 +671,7 @@ function Profile({ session, logout, setMessage }) {
 
       <div className="profile-card">
         <h3>Withdrawal Request</h3>
-        <p className="notice">Practice-mode request. Current order volume: {eligibility.orderVolume.toFixed(2)} / {eligibility.minimumOrderVolume}</p>
+        <p className="notice">Review-mode request. Current order volume: {eligibility.orderVolume.toFixed(2)} / {eligibility.minimumOrderVolume}</p>
         <form className="tool-form" onSubmit={requestWithdrawal}>
           <input type="number" min="1" value={withdrawForm.amount} onChange={(event) => setWithdrawForm({ ...withdrawForm, amount: event.target.value })} />
           <select value={withdrawForm.method} onChange={(event) => setWithdrawForm({ ...withdrawForm, method: event.target.value })}>

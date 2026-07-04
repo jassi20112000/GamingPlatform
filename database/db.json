@@ -1,19 +1,19 @@
 {
   "users": [
     {
-      "id": "admin-demo",
-      "name": "Admin",
-      "email": "admin@gaming.demo",
+      "id": "admin-main",
+      "name": "DoremonKing Admin",
+      "email": "admin@doremonking.app",
       "passwordHash": "$2b$10$oRyMTnzX.Jc5nugnJsOsk.kFZuQXMWH/g9MwVBixNywy4a1fw.lqy",
       "role": "admin",
       "blocked": false,
       "createdAt": "2026-07-03T00:00:00.000Z"
     },
     {
-      "id": "user-demo",
-      "name": "Demo User",
-      "email": "demo@gaming.demo",
-      "passwordHash": "$2b$10$xbvXCfzR8W4EYzTqGp9iSe5dZLxR5hFF0uIjUAKdQuzI4aq3/xH42",
+      "id": "member-main",
+      "name": "Member Account",
+      "email": "member@doremonking.app",
+      "passwordHash": "$2b$10$GQZ9g7RVQPKF7Od1Sm6oWORKC/YMwF/n6XInwzN14G4kLu7CaX1b6",
       "role": "user",
       "blocked": false,
       "createdAt": "2026-07-03T00:00:00.000Z"
@@ -21,11 +21,11 @@
   ],
   "wallets": [
     {
-      "userId": "admin-demo",
+      "userId": "admin-main",
       "coins": 1000
     },
     {
-      "userId": "user-demo",
+      "userId": "member-main",
       "coins": 500
     }
   ],
@@ -33,7 +33,7 @@
     {
       "id": "ludo",
       "name": "Ludo Casual",
-      "description": "Roll dice and move demo tokens.",
+      "description": "Roll dice and move skill tokens.",
       "active": true
     },
     {
@@ -50,19 +50,19 @@
     },
     {
       "id": "aviator",
-      "name": "Aviator Fair Demo",
-      "description": "Fair animation multiplier demo.",
+      "name": "Aviator Fair",
+      "description": "Fair animation multiplier game.",
       "active": true
     },
     {
       "id": "mines",
-      "name": "Fair Mines Demo",
-      "description": "Nine-tile fair mines demo with one hidden bomb.",
+      "name": "Fair Mines",
+      "description": "Nine-tile fair mines game with one hidden bomb.",
       "active": true
     },
     {
       "id": "cricket",
-      "name": "Cricket Score Demo",
+      "name": "Cricket Score",
       "description": "Live-style cricket scoreboard placeholder.",
       "active": true
     }
@@ -71,18 +71,18 @@
   "transactions": [
     {
       "id": "txn-admin-seed",
-      "userId": "admin-demo",
+      "userId": "admin-main",
       "type": "signup_bonus",
       "amount": 1000,
-      "note": "Initial admin demo coins",
+      "note": "Initial admin wallet units",
       "createdAt": "2026-07-03T00:00:00.000Z"
     },
     {
       "id": "txn-user-seed",
-      "userId": "user-demo",
+      "userId": "member-main",
       "type": "signup_bonus",
       "amount": 500,
-      "note": "Demo user signup coins",
+      "note": "Member signup wallet units",
       "createdAt": "2026-07-03T00:00:00.000Z"
     }
   ],

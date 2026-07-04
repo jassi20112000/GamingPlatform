@@ -1,8 +1,8 @@
 {
-  "name": "gaming-platform",
+  "name": "doremonking-platform",
   "version": "1.0.0",
   "private": true,
-  "description": "Demo gaming platform with frontend, backend, database, admin panel, wallet, and demo games.",
+  "description": "DoremonKing skill gaming platform with frontend, backend, wallet ledger, admin panel, and installable app support.",
   "scripts": {
     "postinstall": "npm --prefix backend install && npm --prefix frontend install",
     "install:all": "npm --prefix backend install && npm --prefix frontend install",
