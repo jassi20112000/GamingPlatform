@@ -299,19 +299,95 @@ function OrdersPage({ orders, refresh, setMessage }) {
 }
 
 function GamesPage({ refresh, setMessage }) {
-  const [selected, setSelected] = useState("mines");
+  const [selected, setSelected] = useState("matches");
   return (
     <section className="games-layout">
       <div className="game-tabs">
-        {["mines", "aviator", "ludo", "cricket"].map((game) => (
+        {["matches", "mines", "aviator", "ludo", "cricket"].map((game) => (
           <button key={game} className={selected === game ? "active" : ""} onClick={() => setSelected(game)}>{game}</button>
         ))}
       </div>
+      {selected === "matches" && <FairMatchPanel refresh={refresh} setMessage={setMessage} />}
       {selected === "mines" && <MinesGame refresh={refresh} setMessage={setMessage} />}
       {selected === "aviator" && <AviatorGame refresh={refresh} setMessage={setMessage} />}
       {selected === "ludo" && <LudoGame refresh={refresh} setMessage={setMessage} />}
       {selected === "cricket" && <CricketDemo />}
     </section>
+  );
+}
+
+function FairMatchPanel({ refresh, setMessage }) {
+  const [matches, setMatches] = useState([]);
+  const [form, setForm] = useState({ gameId: "ludo", entryAmount: 10 });
+
+  async function loadMatches() {
+    const data = await api("/api/matches");
+    setMatches(data.matches || []);
+  }
+
+  useEffect(() => {
+    loadMatches().catch((error) => setMessage(error.message));
+  }, []);
+
+  async function createMatch(event) {
+    event.preventDefault();
+    try {
+      await api("/api/matches", { method: "POST", body: JSON.stringify({ ...form, entryAmount: Number(form.entryAmount) }) });
+      setMessage("1v1 fair match created. Entry moved to escrow ledger.");
+      await loadMatches();
+      await refresh();
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
+  async function joinMatch(matchId) {
+    try {
+      await api(`/api/matches/${matchId}/join`, { method: "POST" });
+      setMessage("Joined match. Admin settlement is required after fair-play review.");
+      await loadMatches();
+      await refresh();
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
+  async function cancelMatch(matchId) {
+    try {
+      await api(`/api/matches/${matchId}/cancel`, { method: "POST" });
+      setMessage("Open match cancelled and escrow refunded.");
+      await loadMatches();
+      await refresh();
+    } catch (error) {
+      setMessage(error.message);
+    }
+  }
+
+  return (
+    <div className="game-panel">
+      <h3>Fair 1v1 Skill Matches</h3>
+      <p className="notice">Transparent escrow ledger: 8% platform fee, TDS/GST fields tracked, admin-only settlement. Real payments stay disabled until written legal/gateway approval.</p>
+      <form className="tool-form inline-form" onSubmit={createMatch}>
+        <select value={form.gameId} onChange={(event) => setForm({ ...form, gameId: event.target.value })}>
+          <option value="ludo">Ludo</option>
+          <option value="mines">Mines</option>
+          <option value="aviator">Aviator</option>
+          <option value="cricket">Cricket</option>
+        </select>
+        <input type="number" min="1" max="10000" value={form.entryAmount} onChange={(event) => setForm({ ...form, entryAmount: event.target.value })} />
+        <button className="primary-btn">Create Match</button>
+      </form>
+      <div className="compact-list">
+        {matches.map((match) => (
+          <p key={match.id}>
+            <strong>{match.gameId}</strong> Rs {match.entryAmount} - {match.status} - escrow {match.escrowAmount}
+            {match.status === "open" && <span className="row-actions"><button onClick={() => joinMatch(match.id)}>Join</button><button onClick={() => cancelMatch(match.id)}>Cancel</button></span>}
+            {match.status === "settled" && <span> winner payout {match.netPayout}</span>}
+          </p>
+        ))}
+        {!matches.length && <p className="notice">No matches yet. Create one for another user to join.</p>}
+      </div>
+    </div>
   );
 }
 
@@ -551,24 +627,62 @@ function Profile({ session, logout, setMessage }) {
 
 function AdminPanel() {
   const [data, setData] = useState(null);
+  const [settleForms, setSettleForms] = useState({});
+  const [adminMessage, setAdminMessage] = useState("");
   async function load() {
     setData(await api("/api/admin/overview"));
   }
   useEffect(() => {
     load();
   }, []);
+
+  async function settleMatch(match) {
+    try {
+      const winnerId = settleForms[match.id] || match.players[0];
+      await api(`/api/admin/matches/${match.id}/settle`, {
+        method: "POST",
+        body: JSON.stringify({ winnerId, note: "Admin fair-play review completed" })
+      });
+      setAdminMessage("Match settled and payout ledger updated.");
+      await load();
+    } catch (error) {
+      setAdminMessage(error.message);
+    }
+  }
+
   if (!data) return <p className="muted">Loading admin panel...</p>;
   return (
     <section className="admin-layout">
+      {adminMessage && <div className="toast">{adminMessage}</div>}
       <div className="grid stats">
         <StatTile icon={User} label="Total Users" value={data.totals.users} />
         <StatTile icon={Activity} label="Active Users" value={data.totals.activeUsers} />
-        <StatTile icon={ListChecks} label="Demo Orders" value={data.totals.orders} />
+        <StatTile icon={ListChecks} label="Fair Matches" value={data.totals.matches} />
         <StatTile icon={Wallet} label="Withdrawals" value={data.totals.withdrawals} />
       </div>
       <div className="panel">
         <h3>Compliance Notes</h3>
         <p className="notice">Real withdrawals, UPI collection, betting, and paid contests are disabled until licensed gateway, KYC, tax, and legal compliance are integrated.</p>
+      </div>
+      <div className="panel">
+        <h3>Fair Match Settlement</h3>
+        <div className="compact-list">
+          {data.matches?.map((match) => (
+            <p key={match.id}>
+              <strong>{match.gameId}</strong> Rs {match.entryAmount} - {match.status} - escrow {match.escrowAmount}
+              {match.status === "active" && (
+                <span className="row-actions">
+                  <select value={settleForms[match.id] || match.players[0]} onChange={(event) => setSettleForms({ ...settleForms, [match.id]: event.target.value })}>
+                    {match.players.map((playerId) => <option key={playerId} value={playerId}>{playerId}</option>)}
+                  </select>
+                  <button onClick={() => settleMatch(match)}>Settle</button>
+                </span>
+              )}
+              {match.status === "settled" && <span> payout {match.netPayout}, fee {match.platformFee}, TDS {match.tds}</span>}
+            </p>
+          ))}
+          {!data.matches?.length && <p className="notice">No fair matches yet.</p>}
+        </div>
       </div>
       <div className="panel">
         <h3>Recent Orders</h3>

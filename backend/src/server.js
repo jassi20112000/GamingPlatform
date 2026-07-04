@@ -58,6 +58,28 @@ const paymentMethodSchema = z.object({
   accountRef: z.string().trim().min(3).max(80)
 });
 
+const matchSchema = z.object({
+  gameId: z.enum(["ludo", "mines", "aviator", "cricket"]),
+  entryAmount: z.number().min(1).max(10000)
+});
+
+const settleMatchSchema = z.object({
+  winnerId: z.string().min(2),
+  note: z.string().trim().max(200).optional()
+});
+
+const platformFeeRate = 0.08;
+const tdsRate = 0.30;
+const gstRate = 0.28;
+
+function findWallet(db, userId) {
+  return db.wallets.find((item) => item.userId === userId);
+}
+
+function requireWalletBalance(wallet, amount) {
+  return wallet && wallet.coins >= amount;
+}
+
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, name: "DoremonKing API" });
 });
@@ -183,6 +205,103 @@ app.post("/api/orders", requireAuth, (req, res) => {
   res.status(201).json({ order });
 });
 
+app.get("/api/matches", requireAuth, (req, res) => {
+  const db = readDb();
+  const matches = (db.matches || [])
+    .filter((item) => item.status === "open" || item.players.includes(req.user.id) || req.user.role === "admin")
+    .slice(-80)
+    .reverse();
+  res.json({ matches });
+});
+
+app.post("/api/matches", requireAuth, (req, res) => {
+  const parsed = matchSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid match details" });
+
+  const db = readDb();
+  db.matches ||= [];
+  db.transactions ||= [];
+  const wallet = findWallet(db, req.user.id);
+  if (!requireWalletBalance(wallet, parsed.data.entryAmount)) {
+    return res.status(400).json({ message: "Insufficient demo wallet balance" });
+  }
+
+  wallet.coins -= parsed.data.entryAmount;
+  const match = {
+    id: uuid(),
+    gameId: parsed.data.gameId,
+    entryAmount: parsed.data.entryAmount,
+    players: [req.user.id],
+    status: "open",
+    escrowAmount: parsed.data.entryAmount,
+    platformFeeRate,
+    tdsRate,
+    gstRate,
+    createdAt: new Date().toISOString()
+  };
+  db.matches.push(match);
+  db.transactions.push({
+    id: uuid(),
+    userId: req.user.id,
+    type: "match_escrow_debit",
+    amount: -parsed.data.entryAmount,
+    note: `${parsed.data.gameId} match escrow`,
+    createdAt: new Date().toISOString()
+  });
+  writeDb(db);
+  res.status(201).json({ match });
+});
+
+app.post("/api/matches/:matchId/join", requireAuth, (req, res) => {
+  const db = readDb();
+  const match = (db.matches || []).find((item) => item.id === req.params.matchId);
+  if (!match || match.status !== "open") return res.status(404).json({ message: "Open match not found" });
+  if (match.players.includes(req.user.id)) return res.status(400).json({ message: "You already joined this match" });
+
+  const wallet = findWallet(db, req.user.id);
+  if (!requireWalletBalance(wallet, match.entryAmount)) {
+    return res.status(400).json({ message: "Insufficient demo wallet balance" });
+  }
+
+  wallet.coins -= match.entryAmount;
+  match.players.push(req.user.id);
+  match.escrowAmount += match.entryAmount;
+  match.status = "active";
+  match.joinedAt = new Date().toISOString();
+  db.transactions.push({
+    id: uuid(),
+    userId: req.user.id,
+    type: "match_escrow_debit",
+    amount: -match.entryAmount,
+    note: `${match.gameId} match escrow`,
+    createdAt: new Date().toISOString()
+  });
+  writeDb(db);
+  res.json({ match });
+});
+
+app.post("/api/matches/:matchId/cancel", requireAuth, (req, res) => {
+  const db = readDb();
+  const match = (db.matches || []).find((item) => item.id === req.params.matchId);
+  if (!match || match.status !== "open" || match.players[0] !== req.user.id) {
+    return res.status(400).json({ message: "Only creator can cancel an open match" });
+  }
+  const wallet = findWallet(db, req.user.id);
+  wallet.coins += match.entryAmount;
+  match.status = "cancelled";
+  match.cancelledAt = new Date().toISOString();
+  db.transactions.push({
+    id: uuid(),
+    userId: req.user.id,
+    type: "match_escrow_refund",
+    amount: match.entryAmount,
+    note: `${match.gameId} match refund`,
+    createdAt: new Date().toISOString()
+  });
+  writeDb(db);
+  res.json({ match });
+});
+
 app.get("/api/payment-methods", requireAuth, (req, res) => {
   const db = readDb();
   const methods = (db.paymentMethods || []).filter((item) => item.userId === req.user.id);
@@ -268,15 +387,60 @@ app.get("/api/admin/overview", requireAuth, requireAdmin, (_req, res) => {
       scores: db.scores.length,
       transactions: db.transactions.length,
       orders: (db.orders || []).length,
-      withdrawals: (db.withdrawals || []).length
+      withdrawals: (db.withdrawals || []).length,
+      matches: (db.matches || []).length
     },
     users: db.users.map(publicUser),
     transactions: db.transactions.slice(-50).reverse(),
     scores: db.scores.slice(-50).reverse(),
     orders: (db.orders || []).slice(-50).reverse(),
     withdrawals: (db.withdrawals || []).slice(-50).reverse(),
-    paymentMethods: (db.paymentMethods || []).slice(-50).reverse()
+    paymentMethods: (db.paymentMethods || []).slice(-50).reverse(),
+    matches: (db.matches || []).slice(-50).reverse()
   });
+});
+
+app.post("/api/admin/matches/:matchId/settle", requireAuth, requireAdmin, (req, res) => {
+  const parsed = settleMatchSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid settlement details" });
+
+  const db = readDb();
+  const match = (db.matches || []).find((item) => item.id === req.params.matchId);
+  if (!match || match.status !== "active") return res.status(404).json({ message: "Active match not found" });
+  if (!match.players.includes(parsed.data.winnerId)) return res.status(400).json({ message: "Winner must be a match player" });
+
+  const winnerWallet = findWallet(db, parsed.data.winnerId);
+  const platformFee = Number((match.escrowAmount * platformFeeRate).toFixed(2));
+  const grossPayout = Number((match.escrowAmount - platformFee).toFixed(2));
+  const winnerEntry = match.entryAmount;
+  const netWinnings = Math.max(0, grossPayout - winnerEntry);
+  const tds = Number((netWinnings * tdsRate).toFixed(2));
+  const netPayout = Number((grossPayout - tds).toFixed(2));
+  const gstLiability = Number((match.escrowAmount * gstRate).toFixed(2));
+
+  winnerWallet.coins += netPayout;
+  Object.assign(match, {
+    status: "settled",
+    winnerId: parsed.data.winnerId,
+    platformFee,
+    grossPayout,
+    netWinnings,
+    tds,
+    netPayout,
+    gstLiability,
+    adminNote: parsed.data.note || "Admin fair-play review completed",
+    settledAt: new Date().toISOString()
+  });
+  db.transactions.push({
+    id: uuid(),
+    userId: parsed.data.winnerId,
+    type: "match_winner_payout",
+    amount: netPayout,
+    note: `${match.gameId} winner payout after platform fee/TDS ledger`,
+    createdAt: new Date().toISOString()
+  });
+  writeDb(db);
+  res.json({ match });
 });
 
 app.patch("/api/admin/users/:userId/block", requireAuth, requireAdmin, (req, res) => {

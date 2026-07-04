@@ -293,6 +293,9 @@ nav button.active, nav button:hover, .ghost:hover { background: #0fa66a; color: 
 .empty-state { color: #7c8783; padding: 30px; text-align: center; }
 
 .game-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.game-tabs {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
 .game-panel {
   display: grid;
   gap: 16px;
@@ -444,6 +447,28 @@ nav button.active, nav button:hover, .ghost:hover { background: #0fa66a; color: 
   margin: 0;
   padding: 10px 12px;
 }
+.inline-form {
+  grid-template-columns: minmax(120px, 1fr) minmax(90px, 120px) auto;
+}
+.row-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.row-actions button {
+  background: #0bb36d;
+  border-radius: 8px;
+  color: white;
+  font-weight: 800;
+  min-height: 34px;
+  padding: 7px 12px;
+}
+.row-actions select {
+  min-height: 34px;
+  max-width: 260px;
+}
 
 .stats {
   display: grid;
@@ -489,6 +514,7 @@ nav button.active, nav button:hover, .ghost:hover { background: #0fa66a; color: 
   .market-card { grid-template-columns: 1fr; }
   .quick-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .game-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .inline-form { grid-template-columns: 1fr; }
   .order-card { grid-template-columns: 1fr; }
   .order-card > div:last-child { justify-items: start; }
   .share-row { grid-template-columns: repeat(2, 1fr); }

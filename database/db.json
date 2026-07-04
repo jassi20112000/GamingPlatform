@@ -89,5 +89,6 @@
   "dailyRewards": [],
   "orders": [],
   "withdrawals": [],
-  "paymentMethods": []
+  "paymentMethods": [],
+  "matches": []
 }
