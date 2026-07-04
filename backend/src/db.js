@@ -6,8 +6,38 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const databaseFile = process.env.DATABASE_FILE || "../database/db.json";
 const dbPath = path.resolve(__dirname, "..", databaseFile);
 
+const defaultDb = {
+  users: [],
+  wallets: [],
+  games: [],
+  scores: [],
+  transactions: [],
+  dailyRewards: [],
+  orders: [],
+  withdrawals: [],
+  paymentMethods: [],
+  matches: [],
+  otps: [],
+  settings: {
+    manualRealMoneyMode: false,
+    complianceStatus: "pending_written_legal_approval",
+    updatedAt: new Date().toISOString()
+  }
+};
+
+function withDefaults(db) {
+  return {
+    ...defaultDb,
+    ...db,
+    settings: {
+      ...defaultDb.settings,
+      ...(db.settings || {})
+    }
+  };
+}
+
 export function readDb() {
-  return JSON.parse(fs.readFileSync(dbPath, "utf8"));
+  return withDefaults(JSON.parse(fs.readFileSync(dbPath, "utf8")));
 }
 
 export function writeDb(db) {

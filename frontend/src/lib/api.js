@@ -15,14 +15,19 @@ export function clearToken() {
 
 export async function api(path, options = {}) {
   const token = getToken();
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {})
-    }
-  });
+  let response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {})
+      }
+    });
+  } catch {
+    throw new Error("Server connection failed. Please try again in a moment.");
+  }
   const text = await response.text();
   const data = text ? (() => {
     try {

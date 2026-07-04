@@ -210,7 +210,7 @@ app.post("/api/auth/signup/otp", async (req, res) => {
   if (!parsed.success) return res.status(400).json({ message: "Check signup details" });
 
   const db = readDb();
-  const email = parsed.data.email.toLowerCase();
+  const email = normalizeLoginEmail(parsed.data.email);
   if (db.users.some((user) => user.email === email)) {
     return res.status(409).json({ message: "Email already registered" });
   }
@@ -236,7 +236,7 @@ app.post("/api/auth/signup/verify", async (req, res) => {
   if (!parsed.success) return res.status(400).json({ message: "Enter valid 6 digit OTP" });
 
   const db = readDb();
-  const email = parsed.data.email.toLowerCase();
+  const email = normalizeLoginEmail(parsed.data.email);
   if (db.users.some((user) => user.email === email)) {
     return res.status(409).json({ message: "Email already registered" });
   }
@@ -274,7 +274,7 @@ app.post("/api/auth/password/otp", async (req, res) => {
   if (!parsed.success) return res.status(400).json({ message: "Enter a valid email" });
 
   const db = readDb();
-  const email = parsed.data.email.toLowerCase();
+  const email = normalizeLoginEmail(parsed.data.email);
   const user = db.users.find((item) => item.email === email);
   if (!user) return res.status(404).json({ message: "Email not registered" });
 
@@ -293,7 +293,7 @@ app.post("/api/auth/password/reset", async (req, res) => {
   if (!parsed.success) return res.status(400).json({ message: "Check reset details" });
 
   const db = readDb();
-  const email = parsed.data.email.toLowerCase();
+  const email = normalizeLoginEmail(parsed.data.email);
   const user = db.users.find((item) => item.email === email);
   if (!user) return res.status(404).json({ message: "Email not registered" });
   const verification = await verifyOtp(db, "password_reset", email, parsed.data.otp);
