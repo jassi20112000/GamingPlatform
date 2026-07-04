@@ -138,44 +138,94 @@ function Brand() {
 
 function AuthPage({ setSession, setPage, setMessage, refresh }) {
   const [mode, setMode] = useState("login");
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", otp: "", newPassword: "" });
   const [agree, setAgree] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [setupOtp, setSetupOtp] = useState("");
+
+  function switchMode(nextMode) {
+    setMode(nextMode);
+    setOtpSent(false);
+    setSetupOtp("");
+    setMessage("");
+  }
 
   async function submit(event) {
     event.preventDefault();
-    if (!agree) return setMessage("Please accept the user agreement.");
     try {
-      const path = mode === "signup" ? "/api/auth/signup" : "/api/auth/login";
-      const payload = mode === "signup" ? form : { email: form.email, password: form.password };
-      const data = await api(path, { method: "POST", body: JSON.stringify(payload) });
+      if (mode === "forgot") {
+        if (!otpSent) {
+          const result = await api("/api/auth/password/otp", { method: "POST", body: JSON.stringify({ email: form.email }) });
+          setOtpSent(true);
+          setSetupOtp(result.setupOtp || "");
+          return setMessage(result.message);
+        }
+        const result = await api("/api/auth/password/reset", {
+          method: "POST",
+          body: JSON.stringify({ email: form.email, otp: form.otp, password: form.newPassword })
+        });
+        setMode("login");
+        setOtpSent(false);
+        setSetupOtp("");
+        return setMessage(result.message);
+      }
+
+      if (!agree) return setMessage("Please accept the user agreement.");
+
+      if (mode === "signup") {
+        if (!otpSent) {
+          const result = await api("/api/auth/signup/otp", { method: "POST", body: JSON.stringify({ name: form.name, email: form.email, password: form.password }) });
+          setOtpSent(true);
+          setSetupOtp(result.setupOtp || "");
+          return setMessage(result.message);
+        }
+        const data = await api("/api/auth/signup/verify", { method: "POST", body: JSON.stringify({ email: form.email, otp: form.otp }) });
+        setToken(data.token);
+        await refresh();
+        setSession((current) => ({ ...current, user: data.user }));
+        setPage("dashboard");
+        return setMessage("Account created with signup bonus.");
+      }
+
+      const data = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ email: form.email, password: form.password }) });
       setToken(data.token);
       await refresh();
       setSession((current) => ({ ...current, user: data.user }));
       setPage("dashboard");
-      setMessage(mode === "signup" ? "Account created with demo bonus." : "Logged in successfully.");
+      setMessage("Logged in successfully.");
     } catch (error) {
       setMessage(error.message);
     }
   }
 
+  const title = mode === "signup" ? "Create account" : mode === "forgot" ? "Reset password" : "Login";
+
   return (
     <section className="login-screen">
       <Brand />
-      <h2>{mode === "signup" ? "Create account" : "Login"}</h2>
-      <p>Use demo coins, fair games, and transparent order simulation.</p>
+      <h2>{title}</h2>
+      <p>Secure login with OTP-ready signup and password reset.</p>
       <form className="auth-box" onSubmit={submit}>
         <div className="tabs">
-          <button type="button" className={mode === "login" ? "active" : ""} onClick={() => setMode("login")}>Login</button>
-          <button type="button" className={mode === "signup" ? "active" : ""} onClick={() => setMode("signup")}>Signup</button>
+          <button type="button" className={mode === "login" ? "active" : ""} onClick={() => switchMode("login")}>Login</button>
+          <button type="button" className={mode === "signup" ? "active" : ""} onClick={() => switchMode("signup")}>Signup</button>
         </div>
         {mode === "signup" && <input placeholder="Username" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />}
         <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-        <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-        <label className="checkline">
-          <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
-          <span>I agree to user Privacy Agreement</span>
-        </label>
-        <button className="primary-btn">{mode === "signup" ? "Create Account" : "Login"}</button>
+        {mode !== "forgot" && !otpSent && <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />}
+        {mode === "forgot" && otpSent && <input placeholder="New password" type="password" value={form.newPassword} onChange={(e) => setForm({ ...form, newPassword: e.target.value })} />}
+        {otpSent && <input placeholder="6 digit OTP" inputMode="numeric" value={form.otp} onChange={(e) => setForm({ ...form, otp: e.target.value })} />}
+        {setupOtp && <small className="setup-otp">Temporary setup OTP: {setupOtp}</small>}
+        {mode !== "forgot" && (
+          <label className="checkline">
+            <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
+            <span>I agree to user Privacy Agreement</span>
+          </label>
+        )}
+        <button className="primary-btn">
+          {mode === "signup" ? (otpSent ? "Verify & Create Account" : "Send Signup OTP") : mode === "forgot" ? (otpSent ? "Reset Password" : "Send Reset OTP") : "Login"}
+        </button>
+        {mode === "login" && <button type="button" className="link-btn" onClick={() => switchMode("forgot")}>Forgot password?</button>}
         <small>Demo: demo@gaming.demo / Demo@12345</small>
       </form>
     </section>
@@ -740,6 +790,14 @@ function AdminPanel() {
         <div className="compact-list">
           {data.withdrawals?.map((item) => <p key={item.id}>{item.amount} via {item.method} - {item.status.replaceAll("_", " ")}</p>)}
           {!data.withdrawals?.length && <p className="notice">No withdrawal requests yet.</p>}
+        </div>
+      </div>
+      <div className="panel">
+        <h3>OTP Activity</h3>
+        <p className="notice">Telegram bot configured hone ke baad OTP direct bot me jayega. Abhi pending OTP activity yahan admin ko dikhegi.</p>
+        <div className="compact-list">
+          {data.otps?.map((item) => <p key={item.id}>{item.purpose.replace("_", " ")} - {item.email} - expires {new Date(item.expiresAt).toLocaleTimeString()}</p>)}
+          {!data.otps?.length && <p className="notice">No active OTP requests.</p>}
         </div>
       </div>
     </section>

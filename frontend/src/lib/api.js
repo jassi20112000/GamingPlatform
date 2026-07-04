@@ -1,4 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL
+  || (window.location.hostname === "localhost" ? "http://localhost:4000" : "https://gamingplatform-cja3.onrender.com");
 
 export function getToken() {
   return localStorage.getItem("gaming_token");

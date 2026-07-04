@@ -32,6 +32,19 @@ Admin:
 
 Create normal users from the signup page.
 
+## Signup OTP / Forgot Password
+
+Signup and forgot password now use a 6 digit OTP.
+
+For Telegram bot delivery, add these environment variables on Render:
+
+```env
+TELEGRAM_BOT_TOKEN=your_bot_token_from_botfather
+TELEGRAM_CHAT_ID=your_admin_chat_id
+```
+
+If Telegram is not configured yet, the app shows a temporary setup OTP so testing does not stop. Configure Telegram before public launch.
+
 ## Legal/Compliance Mode
 
 Manual real-money mode is disabled by default:

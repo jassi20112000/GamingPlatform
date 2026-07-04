@@ -91,6 +91,7 @@
   "withdrawals": [],
   "paymentMethods": [],
   "matches": [],
+  "otps": [],
   "settings": {
     "manualRealMoneyMode": false,
     "complianceStatus": "pending_written_legal_approval",

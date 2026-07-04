@@ -35,9 +35,24 @@ const signupSchema = z.object({
   password: z.string().min(8).max(72)
 });
 
+const signupVerifySchema = z.object({
+  email: z.string().trim().email().max(120),
+  otp: z.string().trim().regex(/^\d{6}$/)
+});
+
 const loginSchema = z.object({
   email: z.string().trim().email(),
   password: z.string().min(1)
+});
+
+const passwordOtpSchema = z.object({
+  email: z.string().trim().email().max(120)
+});
+
+const resetPasswordSchema = z.object({
+  email: z.string().trim().email().max(120),
+  otp: z.string().trim().regex(/^\d{6}$/),
+  password: z.string().min(8).max(72)
 });
 
 const orderSchema = z.object({
@@ -94,25 +109,72 @@ function platformSettings(db) {
   return db.settings;
 }
 
-app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, name: "DoremonKing API" });
-});
+function generateOtp() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
 
-app.post("/api/auth/signup", async (req, res) => {
-  const parsed = signupSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ message: "Check signup details" });
-
-  const db = readDb();
-  const email = parsed.data.email.toLowerCase();
-  if (db.users.some((user) => user.email === email)) {
-    return res.status(409).json({ message: "Email already registered" });
+async function sendTelegramMessage(message) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return false;
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: message })
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Telegram OTP failed", error);
+    return false;
   }
+}
 
+function clearExpiredOtps(db) {
+  db.otps ||= [];
+  const now = Date.now();
+  db.otps = db.otps.filter((item) => new Date(item.expiresAt).getTime() > now && item.attempts < 5);
+}
+
+async function createOtp(db, purpose, email, payload = {}) {
+  clearExpiredOtps(db);
+  const otp = generateOtp();
+  const normalizedEmail = email.toLowerCase();
+  db.otps = db.otps.filter((item) => !(item.email === normalizedEmail && item.purpose === purpose));
+  const item = {
+    id: uuid(),
+    email: normalizedEmail,
+    purpose,
+    otpHash: await bcrypt.hash(otp, 10),
+    payload,
+    attempts: 0,
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    createdAt: new Date().toISOString()
+  };
+  db.otps.push(item);
+  return { item, otp };
+}
+
+async function verifyOtp(db, purpose, email, otp) {
+  clearExpiredOtps(db);
+  const normalizedEmail = email.toLowerCase();
+  const item = db.otps.find((entry) => entry.email === normalizedEmail && entry.purpose === purpose);
+  if (!item) return { ok: false, message: "OTP expired or not found" };
+  const valid = await bcrypt.compare(otp, item.otpHash);
+  if (!valid) {
+    item.attempts += 1;
+    return { ok: false, message: "Invalid OTP" };
+  }
+  db.otps = db.otps.filter((entry) => entry.id !== item.id);
+  return { ok: true, item };
+}
+
+function createUserFromSignup(db, signup) {
   const user = {
     id: uuid(),
-    name: parsed.data.name,
-    email,
-    passwordHash: await bcrypt.hash(parsed.data.password, 10),
+    name: signup.name,
+    email: signup.email.toLowerCase(),
+    passwordHash: signup.passwordHash,
     role: "user",
     blocked: false,
     createdAt: new Date().toISOString()
@@ -127,9 +189,61 @@ app.post("/api/auth/signup", async (req, res) => {
     note: "Signup bonus demo coins",
     createdAt: new Date().toISOString()
   });
+  return user;
+}
+
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true, name: "DoremonKing API" });
+});
+
+app.post("/api/auth/signup/otp", async (req, res) => {
+  const parsed = signupSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Check signup details" });
+
+  const db = readDb();
+  const email = parsed.data.email.toLowerCase();
+  if (db.users.some((user) => user.email === email)) {
+    return res.status(409).json({ message: "Email already registered" });
+  }
+
+  const signup = {
+    name: parsed.data.name,
+    email,
+    passwordHash: await bcrypt.hash(parsed.data.password, 10)
+  };
+  const { otp } = await createOtp(db, "signup", email, signup);
+  const telegramSent = await sendTelegramMessage(`DoremonKing signup OTP for ${email}: ${otp}`);
+  writeDb(db);
+
+  res.json({
+    message: telegramSent ? "Signup OTP sent to admin Telegram bot." : "Signup OTP created. Configure Telegram bot for live delivery.",
+    delivery: telegramSent ? "telegram" : "setup",
+    setupOtp: telegramSent ? undefined : otp
+  });
+});
+
+app.post("/api/auth/signup/verify", async (req, res) => {
+  const parsed = signupVerifySchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Enter valid 6 digit OTP" });
+
+  const db = readDb();
+  const email = parsed.data.email.toLowerCase();
+  if (db.users.some((user) => user.email === email)) {
+    return res.status(409).json({ message: "Email already registered" });
+  }
+  const verification = await verifyOtp(db, "signup", email, parsed.data.otp);
+  if (!verification.ok) {
+    writeDb(db);
+    return res.status(400).json({ message: verification.message });
+  }
+  const user = createUserFromSignup(db, verification.item.payload);
   writeDb(db);
 
   res.status(201).json({ token: signToken(user), user: publicUser(user) });
+});
+
+app.post("/api/auth/signup", async (req, res) => {
+  return res.status(400).json({ message: "Use signup OTP verification" });
 });
 
 app.post("/api/auth/login", async (req, res) => {
@@ -144,6 +258,44 @@ app.post("/api/auth/login", async (req, res) => {
   if (user.blocked) return res.status(403).json({ message: "Account blocked" });
 
   res.json({ token: signToken(user), user: publicUser(user) });
+});
+
+app.post("/api/auth/password/otp", async (req, res) => {
+  const parsed = passwordOtpSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Enter a valid email" });
+
+  const db = readDb();
+  const email = parsed.data.email.toLowerCase();
+  const user = db.users.find((item) => item.email === email);
+  if (!user) return res.status(404).json({ message: "Email not registered" });
+
+  const { otp } = await createOtp(db, "password_reset", email);
+  const telegramSent = await sendTelegramMessage(`DoremonKing password reset OTP for ${email}: ${otp}`);
+  writeDb(db);
+  res.json({
+    message: telegramSent ? "Password reset OTP sent to admin Telegram bot." : "Password reset OTP created. Configure Telegram bot for live delivery.",
+    delivery: telegramSent ? "telegram" : "setup",
+    setupOtp: telegramSent ? undefined : otp
+  });
+});
+
+app.post("/api/auth/password/reset", async (req, res) => {
+  const parsed = resetPasswordSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Check reset details" });
+
+  const db = readDb();
+  const email = parsed.data.email.toLowerCase();
+  const user = db.users.find((item) => item.email === email);
+  if (!user) return res.status(404).json({ message: "Email not registered" });
+  const verification = await verifyOtp(db, "password_reset", email, parsed.data.otp);
+  if (!verification.ok) {
+    writeDb(db);
+    return res.status(400).json({ message: verification.message });
+  }
+  user.passwordHash = await bcrypt.hash(parsed.data.password, 10);
+  user.passwordChangedAt = new Date().toISOString();
+  writeDb(db);
+  res.json({ message: "Password updated. Login with your new password." });
 });
 
 app.get("/api/me", requireAuth, (req, res) => {
@@ -417,6 +569,14 @@ app.get("/api/admin/overview", requireAuth, requireAdmin, (_req, res) => {
     withdrawals: (db.withdrawals || []).slice(-50).reverse(),
     paymentMethods: (db.paymentMethods || []).slice(-50).reverse(),
     matches: (db.matches || []).slice(-50).reverse(),
+    otps: (db.otps || []).map((item) => ({
+      id: item.id,
+      email: item.email,
+      purpose: item.purpose,
+      attempts: item.attempts,
+      expiresAt: item.expiresAt,
+      createdAt: item.createdAt
+    })).slice(-20).reverse(),
     settings
   });
 });

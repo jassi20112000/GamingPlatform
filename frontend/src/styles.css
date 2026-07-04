@@ -136,6 +136,23 @@ nav button.active, nav button:hover, .ghost:hover { background: #0fa66a; color: 
   padding: 12px 14px;
 }
 .auth-box small, .notice, .muted { color: #6f7c78; }
+.auth-box .setup-otp {
+  background: #fff7d7;
+  border: 1px solid #f0ce62;
+  border-radius: 8px;
+  color: #5e4500;
+  display: block;
+  font-weight: 800;
+  padding: 10px 12px;
+  text-align: center;
+}
+.link-btn {
+  background: transparent;
+  color: #008c67;
+  font-weight: 800;
+  min-height: 34px;
+  padding: 4px;
+}
 .checkline {
   align-items: center;
   color: #68736f;
