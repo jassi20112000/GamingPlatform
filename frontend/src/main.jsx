@@ -574,9 +574,30 @@ function AviatorGame({ refresh, setMessage }) {
   }
   return (
     <div className="game-panel aviator">
-      <h3>Aviator Fair</h3>
-      <div className="flight-line"><Plane style={{ left: `${Math.min(84, multiplier * 13)}%` }} /></div>
-      <strong>{multiplier}x</strong>
+      <div className="game-heading">
+        <h3>Aviator Fair</h3>
+        <span>{running ? "Flying" : "Round ended"}</span>
+      </div>
+      <div className="aviator-stage">
+        <div className="aviator-rays" />
+        <div className="multiplier-chip chip-one">x500</div>
+        <div className="multiplier-chip chip-two">x150</div>
+        <div className="multiplier-chip chip-three">x200</div>
+        <svg className="flight-curve" viewBox="0 0 520 220" aria-hidden="true">
+          <path d="M18 194 C120 172, 190 135, 258 92 S405 34, 502 18" />
+        </svg>
+        <div className="aviator-plane" style={{ left: `${Math.min(78, multiplier * 11)}%`, bottom: `${Math.min(66, multiplier * 8)}%` }}>
+          <svg viewBox="0 0 220 120" focusable="false">
+            <path className="aviator-shadow" d="M23 84c39 14 111 15 168 5 13-2 18 8 7 14-33 18-121 20-180 1-15-5-12-25 5-20Z" />
+            <path className="aviator-body" d="M207 52c-9-13-31-21-58-20L107 4c-9-6-21-5-29 3l-7 7 31 28-54 14-23-16c-6-4-14-4-20 0L0 44l21 22L2 91l6 4c6 4 14 3 20-1l22-17 54 12-29 30 8 7c8 7 20 7 29 0l40-30c27 0 49-8 58-21 5-7 5-16-3-23Z" />
+            <path className="aviator-nose" d="M152 35c24 0 43 7 51 19 2 3 2 7 0 10-8 12-28 19-52 19l-70-16 71-32Z" />
+            <path className="aviator-window" d="M137 42c13-1 24 1 33 5l-19 12-26-4 12-13Z" />
+            <path className="aviator-wing" d="M82 16 125 45l-18 5-36-31Z" />
+            <path className="aviator-wing" d="M79 111 124 78l-18-4-37 34Z" />
+          </svg>
+        </div>
+        <strong>{multiplier}x</strong>
+      </div>
       {!running && <p className="notice">Round ended. Start a new fair round.</p>}
       <div className="game-actions">
         <button onClick={restart}>New Round</button>
@@ -589,19 +610,58 @@ function AviatorGame({ refresh, setMessage }) {
 function LudoGame({ refresh, setMessage }) {
   const [dice, setDice] = useState(1);
   const [position, setPosition] = useState(0);
-  const track = 24;
+  const track = 52;
   function roll() {
     const next = Math.ceil(Math.random() * 6);
     setDice(next);
     setPosition((value) => Math.min(track, value + next));
   }
+  const pathCells = new Set([
+    "6-0","6-1","6-2","6-3","6-4","6-5","5-6","4-6","3-6","2-6","1-6","0-6",
+    "0-8","1-8","2-8","3-8","4-8","5-8","6-9","6-10","6-11","6-12","6-13","6-14",
+    "8-14","8-13","8-12","8-11","8-10","8-9","9-8","10-8","11-8","12-8","13-8","14-8",
+    "14-6","13-6","12-6","11-6","10-6","9-6","8-5","8-4","8-3","8-2","8-1","8-0",
+    "7-0","7-1","7-2","7-3","7-4","7-5","7-6","6-7","5-7","4-7","3-7","2-7","1-7","0-7",
+    "7-14","7-13","7-12","7-11","7-10","7-9","7-8","8-7","9-7","10-7","11-7","12-7","13-7","14-7"
+  ]);
+  const tokenCells = ["6-0","6-1","6-2","6-3","6-4","6-5","5-6","4-6","3-6","2-6","1-6","0-6","0-7","0-8","1-8","2-8","3-8","4-8","5-8","6-9","6-10","6-11","6-12","6-13","6-14","7-14","8-14","8-13","8-12","8-11","8-10","8-9","9-8","10-8","11-8","12-8","13-8","14-8","14-7","14-6","13-6","12-6","11-6","10-6","9-6","8-5","8-4","8-3","8-2","8-1","8-0","7-0"];
+  const tokenKey = tokenCells[Math.min(position, tokenCells.length - 1)];
   return (
-    <div className="game-panel">
-      <h3>Ludo Race</h3>
-      <div className="ludo-track">
-        {Array.from({ length: track + 1 }, (_, index) => <span key={index} className={index === position ? "token" : ""}>{index === position ? "K" : ""}</span>)}
+    <div className="game-panel ludo-panel">
+      <div className="game-heading">
+        <h3>Ludo King Board</h3>
+        <span>4 Player Classic</span>
       </div>
-      <div className="dice">{dice}</div>
+      <div className="ludo-arena">
+        <div className="ludo-board">
+          <div className="home-zone red"><span /><span /><span /><span /></div>
+          <div className="home-zone green"><span /><span /><span /><span /></div>
+          <div className="home-zone yellow"><span /><span /><span /><span /></div>
+          <div className="home-zone blue"><span /><span /><span /><span /></div>
+          <div className="ludo-center"><strong>DK</strong></div>
+          {Array.from({ length: 15 * 15 }, (_, index) => {
+            const row = Math.floor(index / 15);
+            const col = index % 15;
+            const key = `${row}-${col}`;
+            const className = [
+              "ludo-cell",
+              pathCells.has(key) ? "path" : "",
+              row === 7 && col > 0 && col < 6 ? "red-path" : "",
+              col === 7 && row > 0 && row < 6 ? "green-path" : "",
+              row === 7 && col > 8 && col < 14 ? "yellow-path" : "",
+              col === 7 && row > 8 && row < 14 ? "blue-path" : "",
+              tokenKey === key ? "has-token" : ""
+            ].filter(Boolean).join(" ");
+            return <span key={key} className={className}>{tokenKey === key ? "K" : ""}</span>;
+          })}
+        </div>
+        <div className="ludo-controls">
+          <div className="dice">
+            {Array.from({ length: dice }, (_, index) => <i key={index} />)}
+          </div>
+          <p>Token position: {position}/{track}</p>
+        </div>
+      </div>
       <div className="game-actions">
         <button onClick={roll}>Roll Dice</button>
         <button onClick={() => saveScore("ludo", position * 10, refresh, setMessage)}>Save Score</button>

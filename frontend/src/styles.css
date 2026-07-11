@@ -544,47 +544,181 @@ nav button.active, nav button:hover, .ghost:hover { background: #0fa66a; color: 
   flex-wrap: wrap;
   gap: 10px;
 }
-.flight-line {
-  background: linear-gradient(120deg, #071b19, #123f39);
+.game-heading {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+.game-heading span {
+  background: #eef7f3;
+  border-radius: 999px;
+  color: #0a9a60;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 7px 11px;
+}
+.aviator-stage {
+  background:
+    radial-gradient(circle at 54% 38%, rgba(255, 255, 255, 0.16), transparent 20%),
+    linear-gradient(155deg, #315fe7 0%, #6d32c2 48%, #351028 100%);
   border-radius: 8px;
-  height: 170px;
+  min-height: 280px;
   overflow: hidden;
   position: relative;
 }
-.flight-line svg {
-  bottom: 46px;
-  color: #0fed83;
-  height: 44px;
+.aviator-rays {
+  background: repeating-conic-gradient(from 12deg at 52% 14%, rgba(255, 255, 255, 0.14) 0 9deg, transparent 9deg 22deg);
+  inset: -80px -80px -20px;
+  opacity: 0.55;
   position: absolute;
-  transition: left 160ms ease;
-  width: 44px;
 }
-.aviator strong { font-size: 46px; }
-.ludo-track {
-  display: grid;
-  gap: 6px;
-  grid-template-columns: repeat(5, 44px);
+.multiplier-chip {
+  background: #ff0f63;
+  border-radius: 999px;
+  color: white;
+  font-size: 26px;
+  font-weight: 1000;
+  padding: 6px 18px;
+  position: absolute;
+  transform: rotate(-8deg);
+  z-index: 2;
 }
-.ludo-track span {
+.chip-one { left: 13%; top: 16%; }
+.chip-two { right: 20%; top: 22%; }
+.chip-three { right: 13%; top: 54%; }
+.flight-curve {
+  bottom: 16px;
+  height: 72%;
+  left: 10px;
+  position: absolute;
+  width: 92%;
+}
+.flight-curve path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.62);
+  stroke-dasharray: 8 10;
+  stroke-width: 4;
+}
+.aviator-plane {
+  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.33));
+  height: 118px;
+  position: absolute;
+  transform: translate(-50%, 50%) rotate(-9deg);
+  transition: left 160ms ease, bottom 160ms ease;
+  width: 220px;
+  z-index: 3;
+}
+.aviator-plane svg { height: 100%; width: 100%; }
+.aviator-shadow { fill: rgba(59, 8, 15, 0.2); }
+.aviator-body { fill: #e74324; }
+.aviator-nose { fill: #ff7b28; }
+.aviator-window { fill: #ffe0a8; }
+.aviator-wing { fill: #be241f; }
+.aviator-stage > strong {
+  bottom: 22px;
+  color: #dfff17;
+  font-size: 54px;
+  font-weight: 1000;
+  left: 28px;
+  position: absolute;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  z-index: 4;
+}
+.ludo-panel { background: linear-gradient(180deg, #ffffff, #f7fbff); }
+.ludo-arena {
   align-items: center;
-  background: #f1e9f2;
-  border-radius: 8px;
   display: grid;
-  height: 44px;
-  place-items: center;
-  width: 44px;
+  gap: 18px;
+  grid-template-columns: minmax(280px, 520px) minmax(120px, 180px);
 }
-.ludo-track .token { background: #0bb36d; color: white; font-weight: 900; }
+.ludo-board {
+  aspect-ratio: 1;
+  background: #ffffff;
+  border: 4px solid #17201d;
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: repeat(15, 1fr);
+  max-width: 520px;
+  position: relative;
+  width: 100%;
+}
+.ludo-cell {
+  background: #fbfbfb;
+  border: 1px solid #d9e0df;
+  display: grid;
+  font-size: clamp(10px, 1.7vw, 16px);
+  font-weight: 1000;
+  place-items: center;
+}
+.ludo-cell.path { background: #ffffff; }
+.ludo-cell.red-path { background: #ff5362; }
+.ludo-cell.green-path { background: #16bb72; }
+.ludo-cell.yellow-path { background: #ffd748; }
+.ludo-cell.blue-path { background: #2d95ff; }
+.ludo-cell.has-token {
+  background: #101817;
+  border: 3px solid #ffd748;
+  border-radius: 50%;
+  color: white;
+  transform: scale(1.08);
+  z-index: 5;
+}
+.home-zone {
+  border: 10px solid currentColor;
+  display: grid;
+  gap: 12%;
+  grid-template-columns: repeat(2, 1fr);
+  padding: 16%;
+  position: absolute;
+  z-index: 4;
+}
+.home-zone span {
+  background: currentColor;
+  border: 5px solid white;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.12);
+}
+.home-zone.red { color: #ef3347; inset: 0 auto auto 0; height: 40%; width: 40%; }
+.home-zone.green { color: #13ad69; inset: 0 0 auto auto; height: 40%; width: 40%; }
+.home-zone.blue { color: #2788ef; inset: auto auto 0 0; height: 40%; width: 40%; }
+.home-zone.yellow { color: #f6c531; inset: auto 0 0 auto; height: 40%; width: 40%; }
+.ludo-center {
+  background: conic-gradient(#13ad69 0 25%, #f6c531 0 50%, #2788ef 0 75%, #ef3347 0);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  color: white;
+  display: grid;
+  font-size: clamp(18px, 4vw, 38px);
+  grid-column: 7 / 10;
+  grid-row: 7 / 10;
+  place-items: center;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.42);
+  z-index: 4;
+}
+.ludo-controls {
+  align-content: center;
+  display: grid;
+  gap: 12px;
+}
 .dice {
   align-items: center;
-  background: #ffd23f;
-  border-radius: 8px;
+  background: white;
+  border: 3px solid #18211e;
+  border-radius: 18px;
+  box-shadow: 0 16px 30px rgba(20, 32, 28, 0.14);
   display: grid;
-  font-size: 54px;
-  font-weight: 900;
-  height: 110px;
-  place-items: center;
-  width: 110px;
+  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  height: 112px;
+  justify-items: center;
+  padding: 18px;
+  width: 112px;
+}
+.dice i {
+  background: #18211e;
+  border-radius: 50%;
+  height: 14px;
+  width: 14px;
 }
 .scoreboard {
   background: #071b19;
